@@ -13,7 +13,7 @@
         font-weight: bold;
       }
       input, select {
-        width: 200px;
+        width: 220px;
         padding: 0.5rem;
         margin-top: 0.5rem;
       }
@@ -21,6 +21,9 @@
         margin-top: 1rem;
         font-size: 1.2rem;
         font-weight: bold;
+      }
+      #sourceWrapper {
+        display: none;
       }
     </style>
   </head>
@@ -32,6 +35,14 @@
       <option value="">-- Choose an item --</option>
     </select>
 
+    <div id="sourceWrapper">
+      <label for="sourceSelect">Source item:</label>
+      <select id="sourceSelect">
+        <option value="market">Market</option>
+        <option value="production">Production</option>
+      </select>
+    </div>
+
     <label for="bonusInput">Production Bonus (%):</label>
     <input type="number" id="bonusInput" placeholder="e.g. 25">
 
@@ -42,16 +53,22 @@
 
     <script>
       let prices = {};
+      const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
 
       async function loadPrices() {
         const res = await fetch('/.netlify/functions/getPrices');
         prices = await res.json();
 
         const select = document.getElementById('itemSelect');
-        for (const item in prices) {
+
+        // Sort items by price ascending
+        const sortedItems = Object.entries(prices)
+          .sort((a, b) => a[1] - b[1]); // sort by price
+
+        for (const [item, price] of sortedItems) {
           const option = document.createElement('option');
           option.value = item;
-          option.textContent = item;
+          option.textContent = `${item}`;
           select.appendChild(option);
         }
       }
@@ -60,11 +77,20 @@
         const selectedItem = this.value;
         const price = prices[selectedItem];
 
+        // Update price display
         const display = document.getElementById('priceDisplay');
         if (price !== undefined) {
           display.textContent = `Price: ${price.toFixed(2)}`;
         } else {
           display.textContent = 'Price: —';
+        }
+
+        // Show/hide source item selector
+        const sourceWrapper = document.getElementById('sourceWrapper');
+        if (hiddenSourceItems.includes(selectedItem)) {
+          sourceWrapper.style.display = 'none';
+        } else {
+          sourceWrapper.style.display = 'block';
         }
       });
 
