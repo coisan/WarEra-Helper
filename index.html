@@ -142,25 +142,48 @@
       const sourceValue = document.getElementById('sourceSelect').value;
       const materialsDiv = document.getElementById('materialsInfo');
       materialsDiv.innerHTML = '';
-
+    
       const recipe = recipes[selectedItem];
-      if (!recipe || hiddenSourceItems.includes(selectedItem)) return;
-      if (sourceValue !== 'market') return;
-
-      if (Object.keys(recipe.materials).length > 0) {
-        const list = document.createElement('ul');
-        for (const [mat, qty] of Object.entries(recipe.materials)) {
+      if (!recipe) return;
+    
+      const bonusStr = document.getElementById('bonusInput').value;
+      const bonus = parseFloat(bonusStr) || 0;
+    
+      const displayPP = (pp) => (pp / (1 + bonus / 100)).toFixed(2);
+    
+      const list = document.createElement('ul');
+      let totalPP = recipe.pp / (1 + bonus / 100);
+    
+      for (const [mat, qty] of Object.entries(recipe.materials)) {
+        const matRecipe = recipes[mat];
+        const matLi = document.createElement('li');
+    
+        if (sourceValue === 'market') {
           const matPrice = prices[mat];
-          if (matPrice !== undefined) {
-            const li = document.createElement('li');
-            li.textContent = `${qty} × ${mat} @ ${matPrice.toFixed(3)}`;
-            list.appendChild(li);
+          const ppCost = matRecipe ? qty * (matRecipe.pp / (1 + bonus / 100)) : 0;
+          matLi.textContent = `${qty} × ${mat} @ ${matPrice?.toFixed(3) ?? '—'} — PP cost: ${ppCost.toFixed(2)}`;
+          totalPP += ppCost;
+        } else if (sourceValue === 'production') {
+          if (matRecipe) {
+            const ppCost = qty * (matRecipe.pp / (1 + bonus / 100));
+            matLi.textContent = `${qty} × ${mat} (produced) — PP cost: ${ppCost.toFixed(2)}`;
+            totalPP += ppCost;
+          } else {
+            matLi.textContent = `${qty} × ${mat} (PP only)`;
           }
         }
-        materialsDiv.innerHTML = '<strong>Required input materials:</strong>';
-        materialsDiv.appendChild(list);
+    
+        list.appendChild(matLi);
       }
+    
+      materialsDiv.innerHTML = '<strong>Required input materials:</strong>';
+      materialsDiv.appendChild(list);
+    
+      const ppInfo = document.createElement('p');
+      ppInfo.innerHTML = `<strong>Total PP cost:</strong> ${totalPP.toFixed(2)}`;
+      materialsDiv.appendChild(ppInfo);
     }
+
 
     function calculatePPCost(itemName, productionBonus, salaryPP) {
       const recipe = recipes[itemName];
