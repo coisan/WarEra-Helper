@@ -230,8 +230,8 @@
       // Case 1: Only PP needed
       if (Object.keys(recipe.materials).length === 0) {
         const ppNeeded = recipe.pp / (1 + bonus / 100);
-        const ppCost = ppNeeded * salary;
-        profitability = (sellPrice - ppCost) / sellPrice;
+        const cost = ppNeeded * salary;
+        profitability = (sellPrice - cost) / cost;
     
       // Case 2: Materials needed, bought from Market
       } else if (source === 'market') {
@@ -242,15 +242,15 @@
           if (!matPrice) return showError(`Missing market price for "${mat}".`);
           materialsCost += matPrice * qty;
         }
-        const totalCost = ppNeeded * salary + materialsCost;
-        profitability = (sellPrice - totalCost) / sellPrice;
+        const cost = ppNeeded * salary + materialsCost;
+        profitability = (sellPrice - cost) / cost;
     
       // Case 3: Materials needed, self-produced
       } else if (source === 'production') {
-        const ppCostTotal = calculatePPCost(item, bonus, salary);
-        if (ppCostTotal === null) return showError('PP cost calculation failed.');
-        const totalCost = ppCostTotal * salary;
-        profitability = (sellPrice - totalCost) / sellPrice;
+        const totalPP = calculatePPCost(item, bonus, salary);
+        if (totalPP === null) return showError('PP cost calculation failed.');
+        const cost = totalPP * salary;
+        profitability = (sellPrice - cost) / cost;
     
       } else {
         return showError('Invalid input source.');
