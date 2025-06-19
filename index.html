@@ -25,6 +25,12 @@
       #sourceWrapper {
         display: none;
       }
+      #resultDisplay.error {
+        color: red;
+      }
+      #resultDisplay.success {
+        color: green;
+      }
     </style>
   </head>
   <body>
@@ -49,7 +55,7 @@
     <label for="salaryInput">Salary per PP:</label>
     <input type="number" id="salaryInput" placeholder="e.g. 1.2">
 
-    <div id="priceDisplay">Price: —</div>
+    <div id="priceDisplay">Sell price: —</div>
 
     <button onclick="calculateProfitability()">Calculate Profitability</button>
     <div id="resultDisplay">Profitability: —</div>
@@ -57,6 +63,27 @@
     <script>
       let prices = {};
       const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
+
+      // Recipes: keys are item names
+      // Each recipe contains: ppNeeded, materials (object with item: qty)
+      const recipes = {
+        grain: { pp: 1, materials: {} },
+        coca: { pp: 1, materials: {} },
+        lead: { pp: 1, materials: {} },
+        iron: { pp: 1, materials: {} },
+        limestone: { pp: 1, materials: {} },
+        lightAmmo: { pp: 1, materials: { lead: 1 } },
+        ammo: { pp: 4, materials: { lead: 4 } },
+        livestock: { pp: 20, materials: {} },
+        bread: { pp: 10, materials: { grain: 10 } },
+        concrete: { pp: 10, materials: { limestone: 10 } },
+        steel: { pp: 10, materials: { iron: 10 } },
+        heavyAmmo: { pp: 16, materials: { lead: 16 } },
+        steak: { pp: 20, materials: { livestock: 1 } },
+        fish: { pp: 40, materials: {} },
+        cookedFish: { pp: 40, materials: { fish: 1 } },
+        cocain: { pp: 200, materials: { coca: 200 } }
+      };
 
       async function loadPrices() {
         const res = await fetch('/.netlify/functions/getPrices');
@@ -72,7 +99,7 @@
         for (const [item, price] of sortedItems) {
           const option = document.createElement('option');
           option.value = item;
-          option.textContent = `${item}`;
+          option.textContent = item;
           select.appendChild(option);
         }
       }
@@ -96,12 +123,122 @@
         } else {
           sourceWrapper.style.display = 'block';
         }
+
+        // Clear profitability output on item change
+        clearResult();
       });
 
+      // Helper: recursively calculate PP cost if producing items
+      function calculatePPCost(itemName, productionBonus, salaryPP) {
+        const recipe = recipes[itemName];
+        if (!recipe) return null;
+
+        // base PP needed adjusted for bonus
+        let basePP = recipe.pp / (1 + productionBonus / 100);
+
+        // materials cost in PP if produced
+        let materialsPPCost = 0;
+        for (const [mat, qty] of Object.entries(recipe.materials)) {
+          const matPPCost = calculatePPCost(mat, productionBonus, salaryPP);
+          if (matPPCost === null) return null; // recipe missing
+          materialsPPCost += matPPCost * qty;
+        }
+
+        return basePP + materialsPPCost;
+      }
+
       function calculateProfitability() {
-        // Placeholder: you'll define the formula in the next step
         const resultDiv = document.getElementById('resultDisplay');
-        resultDiv.textContent = `Profitability: (calculating...)`;
+        resultDiv.classList.remove('error', 'success');
+
+        const item = document.getElementById('itemSelect').value;
+        const bonusStr = document.getElementById('bonusInput').value;
+        const salaryStr = document.getElementById('salaryInput').value;
+        const source = document.getElementById('sourceSelect').value;
+
+        if (!item) {
+          showError('Please select an item.');
+          return;
+        }
+        if (bonusStr === '' || salaryStr === '') {
+          showError('Production Bonus and Salary per PP are required.');
+          return;
+        }
+        const bonus = parseFloat(bonusStr);
+        const salary = parseFloat(salaryStr);
+
+        if (isNaN(bonus) || isNaN(salary)) {
+          showError('Production Bonus and Salary per PP must be valid numbers.');
+          return;
+        }
+
+        const sellPrice = prices[item];
+        if (!sellPrice || sellPrice <= 0) {
+          showError('Invalid or zero sell price for selected item.');
+          return;
+        }
+
+        const recipe = recipes[item];
+        if (!recipe) {
+          showError('Recipe not found for selected item.');
+          return;
+        }
+
+        let profitability;
+
+        // Scenario 1: items only needing PP (no materials)
+        if (Object.keys(recipe.materials).length === 0) {
+          // PP needed adjusted for bonus
+          const ppNeeded = recipe.pp / (1 + bonus / 100);
+          const ppCost = ppNeeded * salary;
+          profitability = ppCost / sellPrice - 1;
+        } else if (source === 'market') {
+          // Scenario 2: buy materials from market
+          const ppNeeded = recipe.pp / (1 + bonus / 100);
+          let materialsCost = 0;
+          for (const [mat, qty] of Object.entries(recipe.materials)) {
+            const matPrice = prices[mat];
+            if (!matPrice) {
+              showError(`Market price for material "${mat}" not found.`);
+              return;
+            }
+            materialsCost += matPrice * qty;
+          }
+          const ppCost = ppNeeded * salary + materialsCost;
+          profitability = ppCost / sellPrice - 1;
+        } else if (source === 'production') {
+          // Scenario 3: produce materials recursively
+          const ppCostMaterials = calculatePPCost(item, bonus, salary);
+          if (ppCostMaterials === null) {
+            showError('Error calculating production PP cost for materials.');
+            return;
+          }
+          const profitabilityCalc = ppCostMaterials * salary / sellPrice - 1;
+          profitability = profitabilityCalc;
+        } else {
+          showError('Invalid source selection.');
+          return;
+        }
+
+        showSuccess(`Profitability: ${(profitability * 100).toFixed(2)}%`);
+      }
+
+      function showError(msg) {
+        const resultDiv = document.getElementById('resultDisplay');
+        resultDiv.textContent = msg;
+        resultDiv.classList.add('error');
+        resultDiv.classList.remove('success');
+      }
+      function showSuccess(msg) {
+        const resultDiv = document.getElementById('resultDisplay');
+        resultDiv.textContent = msg;
+        resultDiv.classList.add('success');
+        resultDiv.classList.remove('error');
+      }
+      function clearResult() {
+        const resultDiv = document.getElementById('resultDisplay');
+        resultDiv.textContent = 'Profitability: —';
+        resultDiv.classList.remove('error', 'success');
       }
 
       loadPrices();
