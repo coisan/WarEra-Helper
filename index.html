@@ -12,12 +12,12 @@
         margin-top: 1rem;
         font-weight: bold;
       }
-      input, select {
+      input, select, button {
         width: 220px;
         padding: 0.5rem;
         margin-top: 0.5rem;
       }
-      #priceDisplay {
+      #priceDisplay, #resultDisplay {
         margin-top: 1rem;
         font-size: 1.2rem;
         font-weight: bold;
@@ -36,7 +36,7 @@
     </select>
 
     <div id="sourceWrapper">
-      <label for="sourceSelect">Source item:</label>
+      <label for="sourceSelect">Input item source:</label>
       <select id="sourceSelect">
         <option value="market">Market</option>
         <option value="production">Production</option>
@@ -51,6 +51,9 @@
 
     <div id="priceDisplay">Price: —</div>
 
+    <button onclick="calculateProfitability()">Calculate Profitability</button>
+    <div id="resultDisplay">Profitability: —</div>
+
     <script>
       let prices = {};
       const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
@@ -61,9 +64,10 @@
 
         const select = document.getElementById('itemSelect');
 
-        // Sort items by price ascending
+        // Sort items by price ascending and exclude "case1"
         const sortedItems = Object.entries(prices)
-          .sort((a, b) => a[1] - b[1]); // sort by price
+          .filter(([item]) => item !== "case1")
+          .sort((a, b) => a[1] - b[1]);
 
         for (const [item, price] of sortedItems) {
           const option = document.createElement('option');
@@ -93,6 +97,12 @@
           sourceWrapper.style.display = 'block';
         }
       });
+
+      function calculateProfitability() {
+        // Placeholder: you'll define the formula in the next step
+        const resultDiv = document.getElementById('resultDisplay');
+        resultDiv.textContent = `Profitability: (calculating...)`;
+      }
 
       loadPrices();
     </script>
