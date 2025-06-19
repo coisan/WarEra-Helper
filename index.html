@@ -4,37 +4,15 @@
   <title>War Era Prices</title>
 </head>
 <body>
-  <h2>Fetch War Era Prices</h2>
-  <button onclick="getPrices()">Get Prices</button>
+  <h2>War Era Prices</h2>
+  <button onclick="loadPrices()">Get Prices</button>
   <pre id="output"></pre>
 
   <script>
-    async function getPrices() {
-      const response = await fetch('https://api2.warera.io/trpc/itemTrading.getPrices', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'trpc-batch-mode': 'true'
-        },
-        body: JSON.stringify({
-          "0": {
-            "json": {
-              "language": "en"
-            }
-          }
-        })
-      });
-
-      if (!response.ok) {
-        document.getElementById("output").textContent = "Error: " + response.status;
-        return;
-      }
-
+    async function loadPrices() {
+      const response = await fetch('/.netlify/functions/getPrices');
       const data = await response.json();
-      console.log(data);
-
-      // Display raw JSON in a pretty format
-      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
     }
   </script>
 </body>
