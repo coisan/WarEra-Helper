@@ -1,48 +1,73 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>War Era Prices</title>
+    <title>War Era Prices Tool</title>
     <style>
       body {
         font-family: sans-serif;
         padding: 2rem;
       }
-      table {
-        border-collapse: collapse;
+      label {
+        display: block;
         margin-top: 1rem;
-        width: 100%;
-        max-width: 500px;
+        font-weight: bold;
       }
-      th, td {
-        border: 1px solid #ccc;
-        padding: 0.5rem 1rem;
-        text-align: left;
+      input, select {
+        width: 200px;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
       }
-      th {
-        background-color: #f4f4f4;
+      #priceDisplay {
+        margin-top: 1rem;
+        font-size: 1.2rem;
+        font-weight: bold;
       }
     </style>
   </head>
   <body>
-    <h2>War Era Item Prices</h2>
-    <button onclick="loadPrices()">Load Prices</button>
-    <div id="tableContainer">Loading...</div>
+    <h2>War Era Price Tool</h2>
+
+    <label for="itemSelect">Select item:</label>
+    <select id="itemSelect">
+      <option value="">-- Choose an item --</option>
+    </select>
+
+    <label for="bonusInput">Production Bonus (%):</label>
+    <input type="number" id="bonusInput" placeholder="e.g. 25">
+
+    <label for="salaryInput">Salary per PP:</label>
+    <input type="number" id="salaryInput" placeholder="e.g. 1.2">
+
+    <div id="priceDisplay">Price: —</div>
 
     <script>
+      let prices = {};
+
       async function loadPrices() {
         const res = await fetch('/.netlify/functions/getPrices');
-        const data = await res.json();
+        prices = await res.json();
 
-        let html = '<table><thead><tr><th>Item</th><th>Price</th></tr></thead><tbody>';
-        for (const [item, price] of Object.entries(data)) {
-          html += `<tr><td>${item}</td><td>${price.toFixed(2)}</td></tr>`;
+        const select = document.getElementById('itemSelect');
+        for (const item in prices) {
+          const option = document.createElement('option');
+          option.value = item;
+          option.textContent = item;
+          select.appendChild(option);
         }
-        html += '</tbody></table>';
-
-        document.getElementById('tableContainer').innerHTML = html;
       }
 
-      // Optional: auto-load on page load
+      document.getElementById('itemSelect').addEventListener('change', function () {
+        const selectedItem = this.value;
+        const price = prices[selectedItem];
+
+        const display = document.getElementById('priceDisplay');
+        if (price !== undefined) {
+          display.textContent = `Price: ${price.toFixed(2)}`;
+        } else {
+          display.textContent = 'Price: —';
+        }
+      });
+
       loadPrices();
     </script>
   </body>
