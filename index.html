@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>War Era Prices</title>
-</head>
-<body>
-  <h2>War Era Prices</h2>
-  <button onclick="loadPrices()">Get Prices</button>
-  <pre id="output"></pre>
+  <head><title>War Era Prices</title></head>
+  <body>
+    <h2>War Era Prices</h2>
+    <button onclick="loadPrices()">Load Prices</button>
+    <pre id="output">Click to load...</pre>
 
-  <script>
-    async function loadPrices() {
-      const response = await fetch('/.netlify/functions/getPrices');
-      const data = await response.json();
-      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-    }
-  </script>
-</body>
+    <script>
+      async function loadPrices() {
+        const res = await fetch('/.netlify/functions/getPrices');
+        const data = await res.json();
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+      }
+    </script>
+  </body>
 </html>
