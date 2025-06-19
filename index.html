@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>War Era Prices Tool</title>
+    <title>War Era Price Tool</title>
     <style>
       body {
         font-family: sans-serif;
@@ -31,6 +31,10 @@
       #resultDisplay.success {
         color: green;
       }
+      #materialsInfo {
+        margin-top: 1rem;
+        font-style: italic;
+      }
     </style>
   </head>
   <body>
@@ -56,6 +60,7 @@
     <input type="number" id="salaryInput" placeholder="e.g. 1.2">
 
     <div id="priceDisplay">Sell price: —</div>
+    <div id="materialsInfo"></div>
 
     <button onclick="calculateProfitability()">Calculate Profitability</button>
     <div id="resultDisplay">Profitability: —</div>
@@ -64,8 +69,6 @@
       let prices = {};
       const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
 
-      // Recipes: keys are item names
-      // Each recipe contains: ppNeeded, materials (object with item: qty)
       const recipes = {
         grain: { pp: 1, materials: {} },
         coca: { pp: 1, materials: {} },
@@ -90,8 +93,6 @@
         prices = await res.json();
 
         const select = document.getElementById('itemSelect');
-
-        // Sort items by price ascending and exclude "case1"
         const sortedItems = Object.entries(prices)
           .filter(([item]) => item !== "case1")
           .sort((a, b) => a[1] - b[1]);
@@ -108,15 +109,13 @@
         const selectedItem = this.value;
         const price = prices[selectedItem];
 
-        // Update price display
         const display = document.getElementById('priceDisplay');
         if (price !== undefined) {
-          display.textContent = `Sell price: ${price.toFixed(2)}`;
+          display.textContent = `Sell price: ${price.toFixed(3)}`;
         } else {
           display.textContent = 'Sell price: —';
         }
 
-        // Show/hide source item selector
         const sourceWrapper = document.getElementById('sourceWrapper');
         if (hiddenSourceItems.includes(selectedItem)) {
           sourceWrapper.style.display = 'none';
@@ -124,23 +123,42 @@
           sourceWrapper.style.display = 'block';
         }
 
-        // Clear profitability output on item change
+        // Show materials if source is Market
+        const materialsDiv = document.getElementById('materialsInfo');
+        materialsDiv.innerHTML = '';
+
+        const recipe = recipes[selectedItem];
+        const sourceValue = document.getElementById('sourceSelect').value;
+
+        if (!hiddenSourceItems.includes(selectedItem) && sourceWrapper.style.display !== 'none') {
+          if (sourceValue === 'market' && recipe && Object.keys(recipe.materials).length > 0) {
+            const list = document.createElement('ul');
+            for (const [mat, qty] of Object.entries(recipe.materials)) {
+              const matPrice = prices[mat];
+              if (matPrice !== undefined) {
+                const li = document.createElement('li');
+                li.textContent = `${qty} × ${mat} @ ${matPrice.toFixed(3)}`;
+                list.appendChild(li);
+              }
+            }
+            materialsDiv.innerHTML = '<strong>Required input materials:</strong>';
+            materialsDiv.appendChild(list);
+          }
+        }
+
         clearResult();
       });
 
-      // Helper: recursively calculate PP cost if producing items
       function calculatePPCost(itemName, productionBonus, salaryPP) {
         const recipe = recipes[itemName];
         if (!recipe) return null;
 
-        // base PP needed adjusted for bonus
         let basePP = recipe.pp / (1 + productionBonus / 100);
-
-        // materials cost in PP if produced
         let materialsPPCost = 0;
+
         for (const [mat, qty] of Object.entries(recipe.materials)) {
           const matPPCost = calculatePPCost(mat, productionBonus, salaryPP);
-          if (matPPCost === null) return null; // recipe missing
+          if (matPPCost === null) return null;
           materialsPPCost += matPPCost * qty;
         }
 
@@ -164,6 +182,7 @@
           showError('Production Bonus and Salary per PP are required.');
           return;
         }
+
         const bonus = parseFloat(bonusStr);
         const salary = parseFloat(salaryStr);
 
@@ -186,14 +205,11 @@
 
         let profitability;
 
-        // Scenario 1: items only needing PP (no materials)
         if (Object.keys(recipe.materials).length === 0) {
-          // PP needed adjusted for bonus
           const ppNeeded = recipe.pp / (1 + bonus / 100);
           const ppCost = ppNeeded * salary;
           profitability = ppCost / sellPrice - 1;
         } else if (source === 'market') {
-          // Scenario 2: buy materials from market
           const ppNeeded = recipe.pp / (1 + bonus / 100);
           let materialsCost = 0;
           for (const [mat, qty] of Object.entries(recipe.materials)) {
@@ -207,20 +223,21 @@
           const ppCost = ppNeeded * salary + materialsCost;
           profitability = ppCost / sellPrice - 1;
         } else if (source === 'production') {
-          // Scenario 3: produce materials recursively
           const ppCostMaterials = calculatePPCost(item, bonus, salary);
           if (ppCostMaterials === null) {
             showError('Error calculating production PP cost for materials.');
             return;
           }
-          const profitabilityCalc = ppCostMaterials * salary / sellPrice - 1;
-          profitability = profitabilityCalc;
+          profitability = (ppCostMaterials * salary / sellPrice) - 1;
         } else {
           showError('Invalid source selection.');
           return;
         }
 
         showSuccess(`Profitability: ${(profitability * 100).toFixed(2)}%`);
+
+        // Refresh material info if source changed
+        document.getElementById('itemSelect').dispatchEvent(new Event('change'));
       }
 
       function showError(msg) {
@@ -229,16 +246,19 @@
         resultDiv.classList.add('error');
         resultDiv.classList.remove('success');
       }
+
       function showSuccess(msg) {
         const resultDiv = document.getElementById('resultDisplay');
         resultDiv.textContent = msg;
         resultDiv.classList.add('success');
         resultDiv.classList.remove('error');
       }
+
       function clearResult() {
         const resultDiv = document.getElementById('resultDisplay');
         resultDiv.textContent = 'Profitability: —';
         resultDiv.classList.remove('error', 'success');
+        document.getElementById('materialsInfo').innerHTML = '';
       }
 
       loadPrices();
