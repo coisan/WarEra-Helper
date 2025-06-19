@@ -1,17 +1,49 @@
 <!DOCTYPE html>
 <html>
-  <head><title>War Era Prices</title></head>
+  <head>
+    <title>War Era Prices</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 2rem;
+      }
+      table {
+        border-collapse: collapse;
+        margin-top: 1rem;
+        width: 100%;
+        max-width: 500px;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 0.5rem 1rem;
+        text-align: left;
+      }
+      th {
+        background-color: #f4f4f4;
+      }
+    </style>
+  </head>
   <body>
-    <h2>War Era Prices</h2>
+    <h2>War Era Item Prices</h2>
     <button onclick="loadPrices()">Load Prices</button>
-    <pre id="output">Click to load...</pre>
+    <div id="tableContainer">Loading...</div>
 
     <script>
       async function loadPrices() {
         const res = await fetch('/.netlify/functions/getPrices');
         const data = await res.json();
-        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+
+        let html = '<table><thead><tr><th>Item</th><th>Price</th></tr></thead><tbody>';
+        for (const [item, price] of Object.entries(data)) {
+          html += `<tr><td>${item}</td><td>${price.toFixed(2)}</td></tr>`;
+        }
+        html += '</tbody></table>';
+
+        document.getElementById('tableContainer').innerHTML = html;
       }
+
+      // Optional: auto-load on page load
+      loadPrices();
     </script>
   </body>
 </html>
