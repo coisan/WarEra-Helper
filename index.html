@@ -1,267 +1,253 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>War Era Price Tool</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        padding: 2rem;
-      }
-      label {
-        display: block;
-        margin-top: 1rem;
-        font-weight: bold;
-      }
-      input, select, button {
-        width: 220px;
-        padding: 0.5rem;
-        margin-top: 0.5rem;
-      }
-      #priceDisplay, #resultDisplay {
-        margin-top: 1rem;
-        font-size: 1.2rem;
-        font-weight: bold;
-      }
-      #sourceWrapper {
-        display: none;
-      }
-      #resultDisplay.error {
-        color: red;
-      }
-      #resultDisplay.success {
-        color: green;
-      }
-      #materialsInfo {
-        margin-top: 1rem;
-        font-style: italic;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>War Era Price Tool</h2>
+<head>
+  <title>War Era Price Tool</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 220px;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    #priceDisplay, #resultDisplay {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    #sourceWrapper {
+      display: none;
+    }
+    #resultDisplay.error {
+      color: red;
+    }
+    #resultDisplay.success {
+      color: green;
+    }
+    #materialsInfo {
+      margin-top: 1rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h2>War Era Price Tool</h2>
 
-    <label for="itemSelect">Select item:</label>
-    <select id="itemSelect">
-      <option value="">-- Choose an item --</option>
+  <label for="itemSelect">Select item:</label>
+  <select id="itemSelect">
+    <option value="">-- Choose an item --</option>
+  </select>
+
+  <div id="sourceWrapper">
+    <label for="sourceSelect">Input item source:</label>
+    <select id="sourceSelect">
+      <option value="market">Market</option>
+      <option value="production">Production</option>
     </select>
+  </div>
 
-    <div id="sourceWrapper">
-      <label for="sourceSelect">Input item source:</label>
-      <select id="sourceSelect">
-        <option value="market">Market</option>
-        <option value="production">Production</option>
-      </select>
-    </div>
+  <label for="bonusInput">Production Bonus (%):</label>
+  <input type="number" id="bonusInput" placeholder="e.g. 25">
 
-    <label for="bonusInput">Production Bonus (%):</label>
-    <input type="number" id="bonusInput" placeholder="e.g. 25">
+  <label for="salaryInput">Salary per PP:</label>
+  <input type="number" id="salaryInput" placeholder="e.g. 1.2">
 
-    <label for="salaryInput">Salary per PP:</label>
-    <input type="number" id="salaryInput" placeholder="e.g. 1.2">
+  <div id="priceDisplay">Sell price: —</div>
+  <div id="materialsInfo"></div>
 
-    <div id="priceDisplay">Sell price: —</div>
-    <div id="materialsInfo"></div>
+  <button onclick="calculateProfitability()">Calculate Profitability</button>
+  <div id="resultDisplay">Profitability: —</div>
 
-    <button onclick="calculateProfitability()">Calculate Profitability</button>
-    <div id="resultDisplay">Profitability: —</div>
+  <script>
+    let prices = {};
+    const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
 
-    <script>
-      let prices = {};
-      const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
+    const recipes = {
+      grain: { pp: 1, materials: {} },
+      coca: { pp: 1, materials: {} },
+      lead: { pp: 1, materials: {} },
+      iron: { pp: 1, materials: {} },
+      limestone: { pp: 1, materials: {} },
+      lightAmmo: { pp: 1, materials: { lead: 1 } },
+      ammo: { pp: 4, materials: { lead: 4 } },
+      livestock: { pp: 20, materials: {} },
+      bread: { pp: 10, materials: { grain: 10 } },
+      concrete: { pp: 10, materials: { limestone: 10 } },
+      steel: { pp: 10, materials: { iron: 10 } },
+      heavyAmmo: { pp: 16, materials: { lead: 16 } },
+      steak: { pp: 20, materials: { livestock: 1 } },
+      fish: { pp: 40, materials: {} },
+      cookedFish: { pp: 40, materials: { fish: 1 } },
+      cocain: { pp: 200, materials: { coca: 200 } }
+    };
 
-      const recipes = {
-        grain: { pp: 1, materials: {} },
-        coca: { pp: 1, materials: {} },
-        lead: { pp: 1, materials: {} },
-        iron: { pp: 1, materials: {} },
-        limestone: { pp: 1, materials: {} },
-        lightAmmo: { pp: 1, materials: { lead: 1 } },
-        ammo: { pp: 4, materials: { lead: 4 } },
-        livestock: { pp: 20, materials: {} },
-        bread: { pp: 10, materials: { grain: 10 } },
-        concrete: { pp: 10, materials: { limestone: 10 } },
-        steel: { pp: 10, materials: { iron: 10 } },
-        heavyAmmo: { pp: 16, materials: { lead: 16 } },
-        steak: { pp: 20, materials: { livestock: 1 } },
-        fish: { pp: 40, materials: {} },
-        cookedFish: { pp: 40, materials: { fish: 1 } },
-        cocain: { pp: 200, materials: { coca: 200 } }
-      };
+    async function loadPrices() {
+      const res = await fetch('/.netlify/functions/getPrices');
+      prices = await res.json();
 
-      async function loadPrices() {
-        const res = await fetch('/.netlify/functions/getPrices');
-        prices = await res.json();
+      const select = document.getElementById('itemSelect');
+      const sortedItems = Object.entries(prices)
+        .filter(([item]) => item !== "case1")
+        .sort((a, b) => a[1] - b[1]);
 
-        const select = document.getElementById('itemSelect');
-        const sortedItems = Object.entries(prices)
-          .filter(([item]) => item !== "case1")
-          .sort((a, b) => a[1] - b[1]);
-
-        for (const [item, price] of sortedItems) {
-          const option = document.createElement('option');
-          option.value = item;
-          option.textContent = item;
-          select.appendChild(option);
-        }
+      for (const [item, price] of sortedItems) {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
+        select.appendChild(option);
       }
+    }
 
-      document.getElementById('itemSelect').addEventListener('change', function () {
-        const selectedItem = this.value;
-        const price = prices[selectedItem];
+    document.getElementById('itemSelect').addEventListener('change', () => {
+      updateSellPrice();
+      updateSourceVisibility();
+      showMaterialInfo();
+      clearResult();
+    });
 
-        const display = document.getElementById('priceDisplay');
-        if (price !== undefined) {
-          display.textContent = `Sell price: ${price.toFixed(3)}`;
-        } else {
-          display.textContent = 'Sell price: —';
-        }
+    document.getElementById('sourceSelect').addEventListener('change', () => {
+      showMaterialInfo();
+    });
 
-        const sourceWrapper = document.getElementById('sourceWrapper');
-        if (hiddenSourceItems.includes(selectedItem)) {
-          sourceWrapper.style.display = 'none';
-        } else {
-          sourceWrapper.style.display = 'block';
-        }
+    function updateSellPrice() {
+      const selectedItem = document.getElementById('itemSelect').value;
+      const price = prices[selectedItem];
+      const display = document.getElementById('priceDisplay');
+      if (price !== undefined) {
+        display.textContent = `Sell price: ${price.toFixed(3)}`;
+      } else {
+        display.textContent = 'Sell price: —';
+      }
+    }
 
-        // Show materials if source is Market
-        const materialsDiv = document.getElementById('materialsInfo');
-        materialsDiv.innerHTML = '';
+    function updateSourceVisibility() {
+      const selectedItem = document.getElementById('itemSelect').value;
+      const sourceWrapper = document.getElementById('sourceWrapper');
+      if (hiddenSourceItems.includes(selectedItem)) {
+        sourceWrapper.style.display = 'none';
+      } else {
+        sourceWrapper.style.display = 'block';
+      }
+    }
 
-        const recipe = recipes[selectedItem];
-        const sourceValue = document.getElementById('sourceSelect').value;
+    function showMaterialInfo() {
+      const selectedItem = document.getElementById('itemSelect').value;
+      const sourceValue = document.getElementById('sourceSelect').value;
+      const materialsDiv = document.getElementById('materialsInfo');
+      materialsDiv.innerHTML = '';
 
-        if (!hiddenSourceItems.includes(selectedItem) && sourceWrapper.style.display !== 'none') {
-          if (sourceValue === 'market' && recipe && Object.keys(recipe.materials).length > 0) {
-            const list = document.createElement('ul');
-            for (const [mat, qty] of Object.entries(recipe.materials)) {
-              const matPrice = prices[mat];
-              if (matPrice !== undefined) {
-                const li = document.createElement('li');
-                li.textContent = `${qty} × ${mat} @ ${matPrice.toFixed(3)}`;
-                list.appendChild(li);
-              }
-            }
-            materialsDiv.innerHTML = '<strong>Required input materials:</strong>';
-            materialsDiv.appendChild(list);
-          }
-        }
+      const recipe = recipes[selectedItem];
+      if (!recipe || hiddenSourceItems.includes(selectedItem)) return;
+      if (sourceValue !== 'market') return;
 
-        clearResult();
-      });
-
-      function calculatePPCost(itemName, productionBonus, salaryPP) {
-        const recipe = recipes[itemName];
-        if (!recipe) return null;
-
-        let basePP = recipe.pp / (1 + productionBonus / 100);
-        let materialsPPCost = 0;
-
+      if (Object.keys(recipe.materials).length > 0) {
+        const list = document.createElement('ul');
         for (const [mat, qty] of Object.entries(recipe.materials)) {
-          const matPPCost = calculatePPCost(mat, productionBonus, salaryPP);
-          if (matPPCost === null) return null;
-          materialsPPCost += matPPCost * qty;
-        }
-
-        return basePP + materialsPPCost;
-      }
-
-      function calculateProfitability() {
-        const resultDiv = document.getElementById('resultDisplay');
-        resultDiv.classList.remove('error', 'success');
-
-        const item = document.getElementById('itemSelect').value;
-        const bonusStr = document.getElementById('bonusInput').value;
-        const salaryStr = document.getElementById('salaryInput').value;
-        const source = document.getElementById('sourceSelect').value;
-
-        if (!item) {
-          showError('Please select an item.');
-          return;
-        }
-        if (bonusStr === '' || salaryStr === '') {
-          showError('Production Bonus and Salary per PP are required.');
-          return;
-        }
-
-        const bonus = parseFloat(bonusStr);
-        const salary = parseFloat(salaryStr);
-
-        if (isNaN(bonus) || isNaN(salary)) {
-          showError('Production Bonus and Salary per PP must be valid numbers.');
-          return;
-        }
-
-        const sellPrice = prices[item];
-        if (!sellPrice || sellPrice <= 0) {
-          showError('Invalid or zero sell price for selected item.');
-          return;
-        }
-
-        const recipe = recipes[item];
-        if (!recipe) {
-          showError('Recipe not found for selected item.');
-          return;
-        }
-
-        let profitability;
-
-        if (Object.keys(recipe.materials).length === 0) {
-          const ppNeeded = recipe.pp / (1 + bonus / 100);
-          const ppCost = ppNeeded * salary;
-          profitability = ppCost / sellPrice - 1;
-        } else if (source === 'market') {
-          const ppNeeded = recipe.pp / (1 + bonus / 100);
-          let materialsCost = 0;
-          for (const [mat, qty] of Object.entries(recipe.materials)) {
-            const matPrice = prices[mat];
-            if (!matPrice) {
-              showError(`Market price for material "${mat}" not found.`);
-              return;
-            }
-            materialsCost += matPrice * qty;
+          const matPrice = prices[mat];
+          if (matPrice !== undefined) {
+            const li = document.createElement('li');
+            li.textContent = `${qty} × ${mat} @ ${matPrice.toFixed(3)}`;
+            list.appendChild(li);
           }
-          const ppCost = ppNeeded * salary + materialsCost;
-          profitability = ppCost / sellPrice - 1;
-        } else if (source === 'production') {
-          const ppCostMaterials = calculatePPCost(item, bonus, salary);
-          if (ppCostMaterials === null) {
-            showError('Error calculating production PP cost for materials.');
-            return;
-          }
-          profitability = (ppCostMaterials * salary / sellPrice) - 1;
-        } else {
-          showError('Invalid source selection.');
-          return;
         }
+        materialsDiv.innerHTML = '<strong>Required input materials:</strong>';
+        materialsDiv.appendChild(list);
+      }
+    }
 
-        showSuccess(`Profitability: ${(profitability * 100).toFixed(2)}%`);
+    function calculatePPCost(itemName, productionBonus, salaryPP) {
+      const recipe = recipes[itemName];
+      if (!recipe) return null;
 
-        // Refresh material info if source changed
-        document.getElementById('itemSelect').dispatchEvent(new Event('change'));
+      let basePP = recipe.pp / (1 + productionBonus / 100);
+      let materialsPPCost = 0;
+
+      for (const [mat, qty] of Object.entries(recipe.materials)) {
+        const matPPCost = calculatePPCost(mat, productionBonus, salaryPP);
+        if (matPPCost === null) return null;
+        materialsPPCost += matPPCost * qty;
       }
 
-      function showError(msg) {
-        const resultDiv = document.getElementById('resultDisplay');
-        resultDiv.textContent = msg;
-        resultDiv.classList.add('error');
-        resultDiv.classList.remove('success');
+      return basePP + materialsPPCost;
+    }
+
+    function calculateProfitability() {
+      clearResult();
+
+      const resultDiv = document.getElementById('resultDisplay');
+      resultDiv.classList.remove('error', 'success');
+
+      const item = document.getElementById('itemSelect').value;
+      const bonusStr = document.getElementById('bonusInput').value;
+      const salaryStr = document.getElementById('salaryInput').value;
+      const source = document.getElementById('sourceSelect').value;
+
+      if (!item) return showError('Please select an item.');
+      if (bonusStr === '' || salaryStr === '') return showError('Production Bonus and Salary per PP are required.');
+
+      const bonus = parseFloat(bonusStr);
+      const salary = parseFloat(salaryStr);
+      if (isNaN(bonus) || isNaN(salary)) return showError('Bonus and Salary must be valid numbers.');
+
+      const sellPrice = prices[item];
+      if (!sellPrice || sellPrice <= 0) return showError('Invalid sell price.');
+
+      const recipe = recipes[item];
+      if (!recipe) return showError('Recipe not found.');
+
+      let profitability;
+
+      if (Object.keys(recipe.materials).length === 0) {
+        const ppNeeded = recipe.pp / (1 + bonus / 100);
+        const ppCost = ppNeeded * salary;
+        profitability = ppCost / sellPrice - 1;
+      } else if (source === 'market') {
+        const ppNeeded = recipe.pp / (1 + bonus / 100);
+        let materialsCost = 0;
+        for (const [mat, qty] of Object.entries(recipe.materials)) {
+          const matPrice = prices[mat];
+          if (!matPrice) return showError(`Missing market price for "${mat}".`);
+          materialsCost += matPrice * qty;
+        }
+        const ppCost = ppNeeded * salary + materialsCost;
+        profitability = ppCost / sellPrice - 1;
+      } else if (source === 'production') {
+        const ppCostTotal = calculatePPCost(item, bonus, salary);
+        if (ppCostTotal === null) return showError('PP cost calculation failed.');
+        profitability = (ppCostTotal * salary) / sellPrice - 1;
+      } else {
+        return showError('Invalid input source.');
       }
 
-      function showSuccess(msg) {
-        const resultDiv = document.getElementById('resultDisplay');
-        resultDiv.textContent = msg;
-        resultDiv.classList.add('success');
-        resultDiv.classList.remove('error');
-      }
+      showSuccess(`Profitability: ${(profitability * 100).toFixed(2)}%`);
+    }
 
-      function clearResult() {
-        const resultDiv = document.getElementById('resultDisplay');
-        resultDiv.textContent = 'Profitability: —';
-        resultDiv.classList.remove('error', 'success');
-        document.getElementById('materialsInfo').innerHTML = '';
-      }
+    function showError(msg) {
+      const resultDiv = document.getElementById('resultDisplay');
+      resultDiv.textContent = msg;
+      resultDiv.classList.add('error');
+    }
 
-      loadPrices();
-    </script>
-  </body>
+    function showSuccess(msg) {
+      const resultDiv = document.getElementById('resultDisplay');
+      resultDiv.textContent = msg;
+      resultDiv.classList.add('success');
+    }
+
+    function clearResult() {
+      const resultDiv = document.getElementById('resultDisplay');
+      resultDiv.textContent = 'Profitability: —';
+      resultDiv.classList.remove('error', 'success');
+    }
+
+    loadPrices();
+  </script>
+</body>
 </html>
