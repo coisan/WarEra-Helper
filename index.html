@@ -203,34 +203,37 @@
 
     function calculateProfitability() {
       clearResult();
-
+    
       const resultDiv = document.getElementById('resultDisplay');
       resultDiv.classList.remove('error', 'success');
-
+    
       const item = document.getElementById('itemSelect').value;
       const bonusStr = document.getElementById('bonusInput').value;
       const salaryStr = document.getElementById('salaryInput').value;
       const source = document.getElementById('sourceSelect').value;
-
+    
       if (!item) return showError('Please select an item.');
       if (bonusStr === '' || salaryStr === '') return showError('Production Bonus and Salary per PP are required.');
-
+    
       const bonus = parseFloat(bonusStr);
       const salary = parseFloat(salaryStr);
       if (isNaN(bonus) || isNaN(salary)) return showError('Bonus and Salary must be valid numbers.');
-
+    
       const sellPrice = prices[item];
       if (!sellPrice || sellPrice <= 0) return showError('Invalid sell price.');
-
+    
       const recipe = recipes[item];
       if (!recipe) return showError('Recipe not found.');
-
+    
       let profitability;
-
+    
+      // Case 1: Only PP needed
       if (Object.keys(recipe.materials).length === 0) {
         const ppNeeded = recipe.pp / (1 + bonus / 100);
         const ppCost = ppNeeded * salary;
-        profitability = ppCost / sellPrice - 1;
+        profitability = (sellPrice - ppCost) / sellPrice;
+    
+      // Case 2: Materials needed, bought from Market
       } else if (source === 'market') {
         const ppNeeded = recipe.pp / (1 + bonus / 100);
         let materialsCost = 0;
@@ -239,16 +242,20 @@
           if (!matPrice) return showError(`Missing market price for "${mat}".`);
           materialsCost += matPrice * qty;
         }
-        const ppCost = ppNeeded * salary + materialsCost;
-        profitability = ppCost / sellPrice - 1;
+        const totalCost = ppNeeded * salary + materialsCost;
+        profitability = (sellPrice - totalCost) / sellPrice;
+    
+      // Case 3: Materials needed, self-produced
       } else if (source === 'production') {
         const ppCostTotal = calculatePPCost(item, bonus, salary);
         if (ppCostTotal === null) return showError('PP cost calculation failed.');
-        profitability = (ppCostTotal * salary) / sellPrice - 1;
+        const totalCost = ppCostTotal * salary;
+        profitability = (sellPrice - totalCost) / sellPrice;
+    
       } else {
         return showError('Invalid input source.');
       }
-
+    
       showSuccess(`Profitability: ${(profitability * 100).toFixed(2)}%`);
     }
 
