@@ -1,13 +1,12 @@
-// This version uses CommonJS syntax compatible with Netlify default runtime
 const fetch = require("node-fetch");
 
 exports.handler = async function (event, context) {
   try {
-    const apiResponse = await fetch('https://api2.warera.io/trpc/itemTrading.getPrices', {
-      method: 'POST',
+    const response = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'trpc-batch-mode': 'true'
+        "Content-Type": "application/json",
+        "trpc-batch-mode": "true"
       },
       body: JSON.stringify({
         "0": {
@@ -18,23 +17,23 @@ exports.handler = async function (event, context) {
       })
     });
 
-    if (!apiResponse.ok) {
+    if (!response.ok) {
       return {
-        statusCode: apiResponse.status,
-        body: JSON.stringify({ error: "API call failed", status: apiResponse.status })
+        statusCode: response.status,
+        body: JSON.stringify({ error: "API call failed", status: response.status })
       };
     }
 
-    const data = await apiResponse.json();
+    const data = await response.json();
 
     return {
       statusCode: 200,
       body: JSON.stringify(data.result.data)
     };
-  } catch (error) {
+  } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || "Unknown error" })
+      body: JSON.stringify({ error: err.message })
     };
   }
 };
