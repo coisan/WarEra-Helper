@@ -17,14 +17,19 @@ exports.handler = async function (event, context) {
 
     const data = await res.json();
 
+    console.log("API Response:", JSON.stringify(data, null, 2)); // 👈 Logs to Netlify console
+
     return {
       statusCode: 200,
-      body: JSON.stringify(data.result.data)
+      body: JSON.stringify(data) // send the whole response back to browser
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ errorType: error.name, errorMessage: error.message })
+      body: JSON.stringify({
+        errorType: error.name,
+        errorMessage: error.message
+      })
     };
   }
 };
