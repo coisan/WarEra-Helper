@@ -169,13 +169,15 @@
     function calculatePPTotal(item, bonus) {
       const recipe = recipes[item];
       if (!recipe) return null;
-      let totalPP = recipe.pp;
+    
+      let totalRawPP = recipe.pp;
       for (const [mat, qty] of Object.entries(recipe.materials)) {
         const subPP = calculatePPTotal(mat, bonus);
         if (subPP === null) return null;
-        totalPP += subPP * qty;
+        totalRawPP += subPP * qty * (1 + bonus / 100); // subPP is unmodified, apply bonus here
       }
-      return totalPP / (1 + bonus / 100);
+    
+      return totalRawPP / (1 + bonus / 100); // apply bonus only once for the final item
     }
 
     loadPrices();
