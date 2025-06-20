@@ -177,15 +177,10 @@
       }
 
       if (source === 'production') {
-        const basePP = recipe.pp / (1 + bonus / 100);
-        let matPP = 0;
-        for (const [mat, qty] of Object.entries(recipe.materials)) {
-          const subTotal = calculatePPTotal(mat);
-          if (subTotal === null) return null;
-          matPP += subTotal * qty;
-        }
-        const totalPP = basePP + matPP;
-        const cost = totalPP * salary;
+        const totalPP = calculatePPTotal(item, bonus);
+        if (totalPP === null) return null;
+        const pp = totalPP / (1 + bonus / 100);
+        const cost = pp * salary;
         return (sellPrice - cost) / cost;
       }
 
