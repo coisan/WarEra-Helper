@@ -36,16 +36,20 @@
     .negative {
       color: red;
     }
+    .dark-gray { color: #333; }
+    .dark-green { color: darkgreen; }
+    .dark-blue { color: darkblue; }
+    .purple { color: purple; }
   </style>
 </head>
 <body>
   <h2>War Era Profitability Table</h2>
 
   <label for="bonusInput">Production Bonus (%):</label>
-  <input type="number" id="bonusInput" placeholder="e.g. 40">
+  <input type="number" id="bonusInput" placeholder="e.g. 25">
 
   <label for="salaryInput">Salary per PP:</label>
-  <input type="number" id="salaryInput" placeholder="e.g. 0.1">
+  <input type="number" id="salaryInput" placeholder="e.g. 1.2">
 
   <div style="margin-top: 1rem;">
     <button onclick="calculateAllProfitabilities()">Calculate Profitability</button>
@@ -67,7 +71,24 @@
   <script>
     let prices = {};
 
-    const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
+    const itemDisplayOrder = [
+      { id: 'lead', label: 'Lead', class: 'dark-gray' },
+      { id: 'coca', label: 'Mysterious plant', class: 'dark-gray' },
+      { id: 'iron', label: 'Iron', class: 'dark-gray' },
+      { id: 'fish', label: 'Fish', class: 'dark-gray' },
+      { id: 'livestock', label: 'Livestock', class: 'dark-gray' },
+      { id: 'grain', label: 'Grain', class: 'dark-gray' },
+      { id: 'limestone', label: 'Limestone', class: 'dark-gray' },
+      { id: 'lightAmmo', label: 'Light ammo', class: 'dark-green' },
+      { id: 'bread', label: 'Bread', class: 'dark-green' },
+      { id: 'steel', label: 'Steel', class: 'dark-green' },
+      { id: 'concrete', label: 'Concrete', class: 'dark-green' },
+      { id: 'ammo', label: 'Ammo', class: 'dark-blue' },
+      { id: 'steak', label: 'Steak', class: 'dark-blue' },
+      { id: 'heavyAmmo', label: 'Heavy ammo', class: 'purple' },
+      { id: 'cocain', label: 'Pill', class: 'purple' },
+      { id: 'cookedFish', label: 'Cooked fish', class: 'purple' }
+    ];
 
     const recipes = {
       grain: { pp: 1, materials: {} },
@@ -102,20 +123,20 @@
       const tbody = document.querySelector('#profitTable tbody');
       tbody.innerHTML = '';
 
-      for (const item in recipes) {
-        if (!prices[item]) continue;
-        const sellPrice = prices[item];
-        const recipe = recipes[item];
+      for (const { id, label, class: colorClass } of itemDisplayOrder) {
+        if (!prices[id]) continue;
+        const sellPrice = prices[id];
+        const recipe = recipes[id];
 
         const row = document.createElement('tr');
         const itemCell = document.createElement('td');
-        itemCell.textContent = item;
+        itemCell.textContent = label;
+        itemCell.className = colorClass;
         row.appendChild(itemCell);
 
-        // Market Source Calculation (only if item has materials)
         const marketCell = document.createElement('td');
         if (Object.keys(recipe.materials).length > 0) {
-          const marketProfit = calculateProfitability(item, bonus, salary, 'market');
+          const marketProfit = calculateProfitability(id, bonus, salary, 'market');
           marketCell.textContent = marketProfit !== null ? (marketProfit * 100).toFixed(2) + '%' : '—';
           marketCell.className = marketProfit > 0 ? 'positive' : 'negative';
         } else {
@@ -123,8 +144,7 @@
         }
         row.appendChild(marketCell);
 
-        // Production Source Calculation
-        const prodProfit = calculateProfitability(item, bonus, salary, 'production');
+        const prodProfit = calculateProfitability(id, bonus, salary, 'production');
         const prodCell = document.createElement('td');
         prodCell.textContent = prodProfit !== null ? (prodProfit * 100).toFixed(2) + '%' : '—';
         prodCell.className = prodProfit > 0 ? 'positive' : 'negative';
@@ -157,22 +177,27 @@
       }
 
       if (source === 'production') {
-        const totalPP = calculatePPTotal(item, bonus);
-        if (totalPP === null) return null;
-        const pp = totalPP / (1 + bonus / 100);
-        const cost = pp * salary;
+        const basePP = recipe.pp / (1 + bonus / 100);
+        let matPP = 0;
+        for (const [mat, qty] of Object.entries(recipe.materials)) {
+          const subTotal = calculatePPTotal(mat);
+          if (subTotal === null) return null;
+          matPP += subTotal * qty;
+        }
+        const totalPP = basePP + matPP;
+        const cost = totalPP * salary;
         return (sellPrice - cost) / cost;
       }
 
       return null;
     }
 
-    function calculatePPTotal(item, bonus) {
+    function calculatePPTotal(item) {
       const recipe = recipes[item];
       if (!recipe) return null;
       let totalPP = recipe.pp;
       for (const [mat, qty] of Object.entries(recipe.materials)) {
-        const subPP = calculatePPTotal(mat, bonus);
+        const subPP = calculatePPTotal(mat);
         if (subPP === null) return null;
         totalPP += subPP * qty;
       }
