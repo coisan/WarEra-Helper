@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>War Era Price Tool</title>
+  <title>War Era Profitability Table</title>
   <style>
     body {
       font-family: sans-serif;
@@ -12,46 +12,34 @@
       margin-top: 1rem;
       font-weight: bold;
     }
-    input, select, button {
+    input, button {
       width: 220px;
       padding: 0.5rem;
       margin-top: 0.5rem;
     }
-    #priceDisplay, #resultDisplay {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      font-weight: bold;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
     }
-    #sourceWrapper {
-      display: none;
+    th, td {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      text-align: center;
     }
-    #resultDisplay.error {
-      color: red;
+    th {
+      background-color: #f0f0f0;
     }
-    #resultDisplay.success {
+    .positive {
       color: green;
     }
-    #materialsInfo {
-      margin-top: 1rem;
-      font-style: italic;
+    .negative {
+      color: red;
     }
   </style>
 </head>
 <body>
-  <h2>War Era Price Tool</h2>
-
-  <label for="itemSelect">Select item:</label>
-  <select id="itemSelect">
-    <option value="">-- Choose an item --</option>
-  </select>
-
-  <div id="sourceWrapper">
-    <label for="sourceSelect">Input item source:</label>
-    <select id="sourceSelect">
-      <option value="market">Market</option>
-      <option value="production">Production</option>
-    </select>
-  </div>
+  <h2>War Era Profitability Table</h2>
 
   <label for="bonusInput">Production Bonus (%):</label>
   <input type="number" id="bonusInput" placeholder="e.g. 25">
@@ -59,14 +47,24 @@
   <label for="salaryInput">Salary per PP:</label>
   <input type="number" id="salaryInput" placeholder="e.g. 1.2">
 
-  <div id="priceDisplay">Sell price: —</div>
-  <div id="materialsInfo"></div>
+  <button onclick="calculateAllProfitabilities()">Calculate Profitability</button>
 
-  <button onclick="calculateProfitability()">Calculate Profitability</button>
-  <div id="resultDisplay">Profitability: —</div>
+  <table id="profitTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Market Source</th>
+        <th>Production Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data rows will go here -->
+    </tbody>
+  </table>
 
   <script>
     let prices = {};
+
     const hiddenSourceItems = ["lead", "coca", "iron", "fish", "livestock", "grain", "limestone"];
 
     const recipes = {
@@ -91,190 +89,87 @@
     async function loadPrices() {
       const res = await fetch('/.netlify/functions/getPrices');
       prices = await res.json();
+      calculateAllProfitabilities();
+    }
 
-      const select = document.getElementById('itemSelect');
-      const sortedItems = Object.entries(prices)
-        .filter(([item]) => item !== "case1")
-        .sort((a, b) => a[1] - b[1]);
+    function calculateAllProfitabilities() {
+      const bonus = parseFloat(document.getElementById('bonusInput').value) || 0;
+      const salary = parseFloat(document.getElementById('salaryInput').value);
+      if (isNaN(salary)) return;
 
-      for (const [item, price] of sortedItems) {
-        const option = document.createElement('option');
-        option.value = item;
-        option.textContent = item;
-        select.appendChild(option);
+      const tbody = document.querySelector('#profitTable tbody');
+      tbody.innerHTML = '';
+
+      for (const item in recipes) {
+        if (!prices[item]) continue;
+        const sellPrice = prices[item];
+        const recipe = recipes[item];
+
+        const row = document.createElement('tr');
+        const itemCell = document.createElement('td');
+        itemCell.textContent = item;
+        row.appendChild(itemCell);
+
+        // Market Source Calculation
+        const marketProfit = calculateProfitability(item, bonus, salary, 'market');
+        const marketCell = document.createElement('td');
+        marketCell.textContent = marketProfit !== null ? (marketProfit * 100).toFixed(2) + '%' : '—';
+        marketCell.className = marketProfit > 0 ? 'positive' : 'negative';
+        row.appendChild(marketCell);
+
+        // Production Source Calculation
+        const prodProfit = calculateProfitability(item, bonus, salary, 'production');
+        const prodCell = document.createElement('td');
+        prodCell.textContent = prodProfit !== null ? (prodProfit * 100).toFixed(2) + '%' : '—';
+        prodCell.className = prodProfit > 0 ? 'positive' : 'negative';
+        row.appendChild(prodCell);
+
+        tbody.appendChild(row);
       }
     }
 
-    document.getElementById('itemSelect').addEventListener('change', () => {
-      updateSellPrice();
-      updateSourceVisibility();
-      showMaterialInfo();
-      clearResult();
-    });
-
-    document.getElementById('sourceSelect').addEventListener('change', () => {
-      showMaterialInfo();
-    });
-
-    function updateSellPrice() {
-      const selectedItem = document.getElementById('itemSelect').value;
-      const price = prices[selectedItem];
-      const display = document.getElementById('priceDisplay');
-      if (price !== undefined) {
-        display.textContent = `Sell price: ${price.toFixed(3)}`;
-      } else {
-        display.textContent = 'Sell price: —';
-      }
-    }
-
-    function updateSourceVisibility() {
-      const selectedItem = document.getElementById('itemSelect').value;
-      const sourceWrapper = document.getElementById('sourceWrapper');
-      if (hiddenSourceItems.includes(selectedItem)) {
-        sourceWrapper.style.display = 'none';
-      } else {
-        sourceWrapper.style.display = 'block';
-      }
-    }
-
-    function showMaterialInfo() {
-      const selectedItem = document.getElementById('itemSelect').value;
-      const sourceValue = document.getElementById('sourceSelect').value;
-      const materialsDiv = document.getElementById('materialsInfo');
-      materialsDiv.innerHTML = '';
-    
-      const recipe = recipes[selectedItem];
-      if (!recipe) return;
-    
-      const bonusStr = document.getElementById('bonusInput').value;
-      const bonus = parseFloat(bonusStr) || 0;
-    
-      const getAdjustedPP = (pp) => pp / (1 + bonus / 100);
-      const displayPP = (pp) => Math.round(getAdjustedPP(pp));
-    
-      const list = document.createElement('ul');
-      let totalPP = getAdjustedPP(recipe.pp);
-    
-      for (const [mat, qty] of Object.entries(recipe.materials)) {
-        const matRecipe = recipes[mat];
-        const matLi = document.createElement('li');
-    
-        if (sourceValue === 'market') {
-          const matPrice = prices[mat];
-          const ppCost = matRecipe ? qty * getAdjustedPP(matRecipe.pp) : 0;
-          matLi.textContent = `${qty} × ${mat} @ ${matPrice?.toFixed(3) ?? '—'} — PP cost: ${Math.round(ppCost)}`;
-          totalPP += ppCost;
-        } else if (sourceValue === 'production') {
-          if (matRecipe) {
-            const ppCost = qty * getAdjustedPP(matRecipe.pp);
-            matLi.textContent = `${qty} × ${mat} (produced) — PP cost: ${Math.round(ppCost)}`;
-            totalPP += ppCost;
-          } else {
-            matLi.textContent = `${qty} × ${mat} (PP only)`;
-          }
-        }
-    
-        list.appendChild(matLi);
-      }
-    
-      materialsDiv.innerHTML = '<strong>Required input materials:</strong>';
-      materialsDiv.appendChild(list);
-    
-      const ppInfo = document.createElement('p');
-      ppInfo.innerHTML = `<strong>Total PP cost:</strong> ${Math.round(totalPP)}`;
-      materialsDiv.appendChild(ppInfo);
-    }
-
-    function calculatePPCost(itemName, productionBonus, salaryPP) {
-      const recipe = recipes[itemName];
-      if (!recipe) return null;
-
-      let basePP = recipe.pp / (1 + productionBonus / 100);
-      let materialsPPCost = 0;
-
-      for (const [mat, qty] of Object.entries(recipe.materials)) {
-        const matPPCost = calculatePPCost(mat, productionBonus, salaryPP);
-        if (matPPCost === null) return null;
-        materialsPPCost += matPPCost * qty;
-      }
-
-      return basePP + materialsPPCost;
-    }
-
-    function calculateProfitability() {
-      clearResult();
-    
-      const resultDiv = document.getElementById('resultDisplay');
-      resultDiv.classList.remove('error', 'success');
-    
-      const item = document.getElementById('itemSelect').value;
-      const bonusStr = document.getElementById('bonusInput').value;
-      const salaryStr = document.getElementById('salaryInput').value;
-      const source = document.getElementById('sourceSelect').value;
-    
-      if (!item) return showError('Please select an item.');
-      if (bonusStr === '' || salaryStr === '') return showError('Production Bonus and Salary per PP are required.');
-    
-      const bonus = parseFloat(bonusStr);
-      const salary = parseFloat(salaryStr);
-      if (isNaN(bonus) || isNaN(salary)) return showError('Bonus and Salary must be valid numbers.');
-    
-      const sellPrice = prices[item];
-      if (!sellPrice || sellPrice <= 0) return showError('Invalid sell price.');
-    
+    function calculateProfitability(item, bonus, salary, source) {
       const recipe = recipes[item];
-      if (!recipe) return showError('Recipe not found.');
-    
-      let profitability;
-    
-      // Case 1: Only PP needed
+      const sellPrice = prices[item];
+      if (!recipe || !sellPrice || sellPrice <= 0) return null;
+
       if (Object.keys(recipe.materials).length === 0) {
-        const ppNeeded = recipe.pp / (1 + bonus / 100);
-        const cost = ppNeeded * salary;
-        profitability = (sellPrice - cost) / cost;
-    
-      // Case 2: Materials needed, bought from Market
-      } else if (source === 'market') {
-        const ppNeeded = recipe.pp / (1 + bonus / 100);
-        let materialsCost = 0;
-        for (const [mat, qty] of Object.entries(recipe.materials)) {
-          const matPrice = prices[mat];
-          if (!matPrice) return showError(`Missing market price for "${mat}".`);
-          materialsCost += matPrice * qty;
-        }
-        const cost = ppNeeded * salary + materialsCost;
-        profitability = (sellPrice - cost) / cost;
-    
-      // Case 3: Materials needed, self-produced
-      } else if (source === 'production') {
-        const totalPP = calculatePPCost(item, bonus, salary);
-        if (totalPP === null) return showError('PP cost calculation failed.');
-        const cost = totalPP * salary;
-        profitability = (sellPrice - cost) / cost;
-    
-      } else {
-        return showError('Invalid input source.');
+        const pp = recipe.pp / (1 + bonus / 100);
+        const cost = pp * salary;
+        return (sellPrice - cost) / cost;
       }
-    
-      showSuccess(`Profitability: ${(profitability * 100).toFixed(2)}%`);
+
+      if (source === 'market') {
+        let matCost = 0;
+        for (const [mat, qty] of Object.entries(recipe.materials)) {
+          if (!prices[mat]) return null;
+          matCost += prices[mat] * qty;
+        }
+        const pp = recipe.pp / (1 + bonus / 100);
+        const cost = matCost + pp * salary;
+        return (sellPrice - cost) / cost;
+      }
+
+      if (source === 'production') {
+        const totalPP = calculatePPTotal(item, bonus);
+        if (totalPP === null) return null;
+        const cost = totalPP * salary;
+        return (sellPrice - cost) / cost;
+      }
+
+      return null;
     }
 
-    function showError(msg) {
-      const resultDiv = document.getElementById('resultDisplay');
-      resultDiv.textContent = msg;
-      resultDiv.classList.add('error');
-    }
-
-    function showSuccess(msg) {
-      const resultDiv = document.getElementById('resultDisplay');
-      resultDiv.textContent = msg;
-      resultDiv.classList.add('success');
-    }
-
-    function clearResult() {
-      const resultDiv = document.getElementById('resultDisplay');
-      resultDiv.textContent = 'Profitability: —';
-      resultDiv.classList.remove('error', 'success');
+    function calculatePPTotal(item, bonus) {
+      const recipe = recipes[item];
+      if (!recipe) return null;
+      let totalPP = recipe.pp;
+      for (const [mat, qty] of Object.entries(recipe.materials)) {
+        const subPP = calculatePPTotal(mat, bonus);
+        if (subPP === null) return null;
+        totalPP += subPP * qty;
+      }
+      return totalPP / (1 + bonus / 100);
     }
 
     loadPrices();
