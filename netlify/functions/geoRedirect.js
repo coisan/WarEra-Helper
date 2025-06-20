@@ -1,18 +1,24 @@
-exports.handler = async (event, context) => {
-  const country = event.headers['x-nf-geo-country'] || 'XX';
+exports.handler = async (event) => {
+  const country = event.headers['x-nf-geo-country'];
+
+  if (!country) {
+    return {
+      statusCode: 403,
+      body: 'Geo data not available. Are you running locally or is your plan limited?',
+    };
+  }
 
   if (country !== 'RO') {
     return {
       statusCode: 403,
-      body: 'Access restricted to Romania only.'
+      body: `Access denied. Your country is ${country}, only Romania (RO) is allowed.`,
     };
   }
 
-  // Serve the index.html or redirect
   return {
     statusCode: 302,
     headers: {
-      Location: '/index.html'
-    }
+      Location: '/index.html',
+    },
   };
 };
