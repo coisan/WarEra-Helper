@@ -159,7 +159,8 @@
       if (source === 'production') {
         const totalPP = calculatePPTotal(item, bonus);
         if (totalPP === null) return null;
-        const cost = totalPP * salary;
+        const pp = totalPP / (1 + bonus / 100);
+        const cost = pp * salary;
         return (sellPrice - cost) / cost;
       }
 
@@ -169,15 +170,13 @@
     function calculatePPTotal(item, bonus) {
       const recipe = recipes[item];
       if (!recipe) return null;
-    
-      let totalRawPP = recipe.pp;
+      let totalPP = recipe.pp;
       for (const [mat, qty] of Object.entries(recipe.materials)) {
         const subPP = calculatePPTotal(mat, bonus);
         if (subPP === null) return null;
-        totalRawPP += subPP * qty * (1 + bonus / 100); // subPP is unmodified, apply bonus here
+        totalPP += subPP * qty;
       }
-    
-      return totalRawPP / (1 + bonus / 100); // apply bonus only once for the final item
+      return totalPP;
     }
 
     loadPrices();
