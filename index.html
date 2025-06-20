@@ -110,11 +110,15 @@
         itemCell.textContent = item;
         row.appendChild(itemCell);
 
-        // Market Source Calculation
-        const marketProfit = calculateProfitability(item, bonus, salary, 'market');
+        // Market Source Calculation (only if item has materials)
         const marketCell = document.createElement('td');
-        marketCell.textContent = marketProfit !== null ? (marketProfit * 100).toFixed(2) + '%' : '—';
-        marketCell.className = marketProfit > 0 ? 'positive' : 'negative';
+        if (Object.keys(recipe.materials).length > 0) {
+          const marketProfit = calculateProfitability(item, bonus, salary, 'market');
+          marketCell.textContent = marketProfit !== null ? (marketProfit * 100).toFixed(2) + '%' : '—';
+          marketCell.className = marketProfit > 0 ? 'positive' : 'negative';
+        } else {
+          marketCell.textContent = '—';
+        }
         row.appendChild(marketCell);
 
         // Production Source Calculation
