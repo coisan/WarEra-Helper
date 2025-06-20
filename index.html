@@ -59,6 +59,7 @@
     <thead>
       <tr>
         <th>Item</th>
+        <th>Sell Price</th>
         <th>Market Source</th>
         <th>Production Source</th>
       </tr>
@@ -133,6 +134,10 @@
         itemCell.textContent = label;
         itemCell.className = colorClass;
         row.appendChild(itemCell);
+
+        const priceCell = document.createElement('td');
+        priceCell.textContent = sellPrice.toFixed(3);
+        row.appendChild(priceCell);
 
         const marketCell = document.createElement('td');
         if (Object.keys(recipe.materials).length > 0) {
