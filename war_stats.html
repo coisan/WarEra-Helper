@@ -6,12 +6,12 @@
 </head>
 <body>
   <nav id="navbar" style="margin-bottom: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 1rem;">
-    <button id="nav-calc" onclick="location.href='calc.html'" style="margin-right: 1rem;">Calculator profitabilitate</button>
-    <button id="nav-stats" onclick="location.href='war_stats.html'">Statistici război țări</button>
+    <button id="nav-calc" class="nav-button" onclick="location.href='calc.html'" style="margin-right: 1rem;">Calculator profitabilitate</button>
+    <button id="nav-stats" class="nav-button" onclick="location.href='war_stats.html'">Statistici război țări</button>
   </nav>
 
   <label for="countrySelect">Selectează o țară:</label>
-  <select id="countrySelect" onchange="populateTable()">
+  <select id="countrySelect" class="nav-button" onchange="populateTable()">
     <option value="">-- Alege o țară --</option>
   </select>
 
@@ -19,9 +19,9 @@
     <thead>
       <tr>
         <th>Țară atacată</th>
-        <th>Damage dat</th>
+        <th>Damage dat (ultimele 7 zile)</th>
         <th>Țară care a atacat</th>
-        <th>Damage primit</th>
+        <th>Damage primit (ultimele 7 zile)</th>
       </tr>
     </thead>
     <tbody></tbody>
