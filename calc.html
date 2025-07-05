@@ -43,25 +43,28 @@
   </style>
 </head>
 <body>
-  <h2>War Era Profitability Table</h2>
+  <nav id="navbar" style="margin-bottom: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 1rem;">
+    <button id="nav-calc" onclick="location.href='calc.html'" style="margin-right: 1rem;">Calculator profitabilitate</button>
+    <button id="nav-stats" onclick="location.href='war_stats.html'">Statistici război țări</button>
+  </nav>
+  
+  <label for="bonusInput">Bonus producție (%):</label>
+  <input type="number" id="bonusInput" placeholder="ex. 45">
 
-  <label for="bonusInput">Production Bonus (%):</label>
-  <input type="number" id="bonusInput" placeholder="e.g. 25">
-
-  <label for="salaryInput">Salary per PP:</label>
-  <input type="number" id="salaryInput" placeholder="e.g. 1.2">
+  <label for="salaryInput">Salariu per PP:</label>
+  <input type="number" id="salaryInput" placeholder="ex. 0.1">
 
   <div style="margin-top: 1rem;">
-    <button onclick="loadPrices()">Calculate Profitability</button>
+    <button onclick="loadPrices()">Calculează</button>
   </div>
 
   <table id="profitTable">
     <thead>
       <tr>
         <th>Item</th>
-        <th>Sell Price</th>
-        <th>Market Source</th>
-        <th>Production Source</th>
+        <th>Preț vânzare</th>
+        <th>Materiale cumpărate</th>
+        <th>Materiale produse</th>
       </tr>
     </thead>
     <tbody>
