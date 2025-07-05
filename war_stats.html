@@ -9,6 +9,22 @@
     <button id="nav-calc" onclick="location.href='calc.html'" style="margin-right: 1rem;">Calculator profitabilitate</button>
     <button id="nav-stats" onclick="location.href='war_stats.html'">Statistici război țări</button>
   </nav>
+
+  <label for="countrySelect">Selectează o țară:</label>
+  <select id="countrySelect" onchange="populateTable()">
+    <option value="">-- Alege o țară --</option>
+  </select>
+
+  <table id="battleTable">
+    <thead>
+      <tr>
+        <th>A atacat</th>
+        <th>A fost atacată</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script src="assets/war_stats.js"></script>
 </body>
 </html>
