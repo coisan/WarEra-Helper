@@ -31,8 +31,8 @@ async function fetchCountryName(id) {
 async function buildStats() {
   const battles = await fetchBattles();
 
-  for (let i = 0; i < battles.length; i++) {
-    const battle = battles[i];
+  for (let i = 0; i < battles.items.length; i++) {
+    const battle = battles.items[i];
     const battleId = battle._id;
     console.log(battleId);
     const attackerId = battle.attacker.id;
