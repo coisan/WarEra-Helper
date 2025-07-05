@@ -36,9 +36,7 @@ async function buildStats() {
   progress.removeAttribute("hidden");
 
   const battles = await fetchBattles();
-  console.log("battles:", battles);
-  console.log("battles length:", typeof battles.items.length);
-  progress.max = battles.length;
+  progress.max = battles.items.length;
 
   for (let i = 0; i < battles.length; i++) {
     const battle = battles[i];
