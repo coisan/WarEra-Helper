@@ -37,9 +37,7 @@ async function buildStats() {
 
   const battles = await fetchBattles();
   console.log("battles:", battles);
-  console.log("Type of battles:", typeof battles);
-  console.log("battles instanceof Array:", battles instanceof Array);
-  console.log("battles keys:", Object.keys(battles));
+  console.log("battles length:", typeof battles.items.length);
   progress.max = battles.length;
 
   for (let i = 0; i < battles.length; i++) {
