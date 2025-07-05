@@ -29,18 +29,12 @@ async function fetchCountryName(id) {
 }
 
 async function buildStats() {
-  const progress = document.getElementById("progress");
-  progress.style.display = "block";
-  progress.value = 0;
-  progress.max = 1;
-  progress.removeAttribute("hidden");
-
   const battles = await fetchBattles();
-  progress.max = battles.items.length;
 
   for (let i = 0; i < battles.length; i++) {
     const battle = battles[i];
     const battleId = battle._id;
+    console.log(battleId);
     const attackerId = battle.attacker.id;
     const defenderId = battle.defender.id;
 
@@ -68,11 +62,8 @@ async function buildStats() {
       const key = countryMap.get(attackerId);
       source.set(key, (source.get(key) || 0) + damage);
     }
-
-    progress.value = i + 1;
+    
   }
-
-  progress.style.display = "none";
   populateDropdown();
 }
 
