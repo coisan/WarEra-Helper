@@ -20,9 +20,36 @@ async function fetchAllCountries() {
 }
 
 async function fetchBattles() {
-  const res = await fetch("https://api2.warera.io/trpc/battle.getBattles?input=" + encodeURIComponent(JSON.stringify({ limit: 100, direction: "backward" })));
-  const data = await res.json();
-  return data.result?.data ?? [];
+  const allBattles = [];
+  let nextCursor = null;
+  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+  while (true) {
+    const input = {
+      limit: 100,
+      direction: "backward",
+      cursor: nextCursor
+    };
+
+    const res = await fetch("https://api2.warera.io/trpc/battle.getBattles?input=" + encodeURIComponent(JSON.stringify(input)));
+    const data = await res.json();
+    const result = data.result?.data;
+
+    if (!result?.items?.length) break;
+
+    for (const battle of result.items) {
+      const timestamp = new Date(battle.createdAt).getTime();
+      if (timestamp < oneWeekAgo) {
+        return { items: allBattles }; // stop if battle is older than 1 week
+      }
+      allBattles.push(battle);
+    }
+
+    nextCursor = result.nextCursor;
+    if (!nextCursor) break; // no more pages
+  }
+
+  return { items: allBattles };
 }
 
 async function fetchRanking(battleId, side) {
