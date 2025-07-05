@@ -167,6 +167,15 @@ const recipes = {
   }
 };
 
+const currentPage = window.location.pathname;
+if (currentPage.includes('calc.html')) {
+document.getElementById('nav-calc').style.fontWeight = 'bold';
+document.getElementById('nav-calc').style.backgroundColor = '#ddd';
+} else if (currentPage.includes('war_stats.html')) {
+document.getElementById('nav-stats').style.fontWeight = 'bold';
+document.getElementById('nav-stats').style.backgroundColor = '#ddd';
+}
+
 async function loadPrices() {
   const res = await fetch('/.netlify/functions/getPrices');
   prices = await res.json();
