@@ -21,6 +21,7 @@ async function fetchRanking(battleId, side) {
 
 async function fetchCountryName(id) {
   if (countryMap.has(id)) return countryMap.get(id);
+  console.log("COUNTRY ID:", id);
   const res = await fetch("https://api2.warera.io/trpc/country.getCountryById?input=" + encodeURIComponent(JSON.stringify({ countryId: id })));
   const data = await res.json();
   const name = data.result?.data?.name || id;
@@ -34,7 +35,7 @@ async function buildStats() {
   for (let i = 0; i < battles.items.length; i++) {
     const battle = battles.items[i];
     const battleId = battle._id;
-    console.log(battleId);
+    console.log("BATTLE:", battleId);
     const attackerId = battle.attacker.id;
     const defenderId = battle.defender.id;
 
