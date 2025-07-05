@@ -51,56 +51,63 @@ async function buildStats(selectedCountryId) {
 
   const battles = await fetchBattles();
 
-  // Filter battles where selectedCountryId is attacker or defender
   const filteredBattles = battles.items.filter(battle =>
     battle.attacker.country === selectedCountryId || battle.defender.country === selectedCountryId
   );
 
-  // Prepare the two Maps to hold damage info
-  const damageDat = new Map();     // defender country -> damage done by selectedCountry as attacker
-  const damagePrimit = new Map();  // attacker country -> damage received by selectedCountry as defender
+  const damageDat = new Map();     // Country -> damage dealt by selected country
+  const damagePrimit = new Map();  // Country -> damage dealt to selected country
 
-  // Cache country names for later use
   await fetchCountryName(selectedCountryId);
 
   for (const battle of filteredBattles) {
     const battleId = battle._id;
+    const attackerId = battle.attacker.country;
+    const defenderId = battle.defender.country;
 
-    if (battle.attacker.country === selectedCountryId) {
-      // Selected country is attacker
-      await fetchCountryName(battle.defender.country); // cache defender name
+    const isAttacker = attackerId === selectedCountryId;
+    const isDefender = defenderId === selectedCountryId;
 
-      // Fetch attacker ranking (damage by countries attacking)
-      const attackerRankings = await fetchRanking(battleId, "attacker");
+    // Cache attacker and defender country names
+    await Promise.all([attackerId, defenderId].map(fetchCountryName));
 
-      // Find damage done by selectedCountry in this battle (should be one entry)
-      const selectedAttackerEntry = attackerRankings.rankings.find(entry => entry.country === selectedCountryId);
-      if (!selectedAttackerEntry) continue; // no damage recorded, skip
+    // Fetch rankings
+    const attackerRankings = await fetchRanking(battleId, "attacker");
+    const defenderRankings = await fetchRanking(battleId, "defender");
 
-      const totalDamage = selectedAttackerEntry.value;
+    if (isAttacker) {
+      // 1. Damage dealt by selected country → defender
+      const entry = attackerRankings.rankings.find(e => e.country === selectedCountryId);
+      if (entry) {
+        const defenderName = countryMap.get(defenderId);
+        damageDat.set(defenderName, (damageDat.get(defenderName) || 0) + entry.value);
+      }
 
-      // Add damage against defender country (battle.defender.id)
-      const defenderName = countryMap.get(battle.defender.country);
-      damageDat.set(defenderName, (damageDat.get(defenderName) || 0) + totalDamage);
+      // 2. Damage received from defenders (damage primit)
+      for (const entry of defenderRankings.rankings) {
+        if (entry.country === selectedCountryId) continue;
+        const defenderName = countryMap.get(entry.country);
+        damagePrimit.set(defenderName, (damagePrimit.get(defenderName) || 0) + entry.value);
+      }
+    }
 
-    } else if (battle.defender.country === selectedCountryId) {
-      // Selected country is defender
-      await fetchCountryName(battle.attacker.country); // cache attacker name
+    if (isDefender) {
+      // 3. Damage dealt by selected country → attacker
+      const entry = defenderRankings.rankings.find(e => e.country === selectedCountryId);
+      if (entry) {
+        const attackerName = countryMap.get(attackerId);
+        damageDat.set(attackerName, (damageDat.get(attackerName) || 0) + entry.value);
+      }
 
-      // Fetch attacker ranking (damage by attackers against defender)
-      const attackerRankings = await fetchRanking(battleId, "attacker");
-
-      // Sum damage by all attackers **except** selectedCountry (which is defender here)
+      // 4. Damage received from attackers (damage primit)
       for (const entry of attackerRankings.rankings) {
-        if (entry.country === selectedCountryId) continue; // skip selected country as attacker (shouldn't happen here anyway)
-
+        if (entry.country === selectedCountryId) continue;
         const attackerName = countryMap.get(entry.country);
         damagePrimit.set(attackerName, (damagePrimit.get(attackerName) || 0) + entry.value);
       }
     }
   }
 
-  // Store stats for the selected country for use in populateTable
   statsByCountry.set(selectedCountryId, {
     name: countryMap.get(selectedCountryId),
     damageDat,
