@@ -58,7 +58,6 @@ async function buildStats(selectedCountryId) {
 
   for (const battle of filteredBattles) {
     const battleId = battle._id;
-    console.log("BATTLE:", battle);
     const attackerId = battle.attacker.country;
     const defenderId = battle.defender.country;
 
@@ -98,11 +97,20 @@ async function populateDropdown() {
 
   const countries = await fetchAllCountries();
 
+  // Sort countries by rankings.countryActivePopulation.value descending
+  countries.sort((a, b) => {
+    const aPop = a.rankings?.countryActivePopulation?.value ?? 0;
+    const bPop = b.rankings?.countryActivePopulation?.value ?? 0;
+    return bPop - aPop;
+  });
+
   countries.forEach(country => {
     countryMap.set(country._id, country.name); // Cache country names
+
+    const pop = country.rankings?.countryActivePopulation?.value ?? 0;
     const option = document.createElement("option");
     option.value = country._id;
-    option.textContent = country.name;
+    option.textContent = `${country.name} (${pop.toLocaleString()})`;
     select.appendChild(option);
   });
 }
