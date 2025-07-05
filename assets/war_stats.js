@@ -47,46 +47,65 @@ async function fetchCountryName(id) {
 }
 
 async function buildStats(selectedCountryId) {
-  statsByCountry.clear(); // Clear previous stats
+  statsByCountry.clear();
 
   const battles = await fetchBattles();
 
   // Filter battles where selectedCountryId is attacker or defender
-  const filteredBattles = battles.items.filter(battle => {
-    return battle.attacker.country === selectedCountryId || battle.defender.country === selectedCountryId;
-  });
+  const filteredBattles = battles.items.filter(battle =>
+    battle.attacker.id === selectedCountryId || battle.defender.id === selectedCountryId
+  );
+
+  // Prepare the two Maps to hold damage info
+  const damageDat = new Map();     // defender country -> damage done by selectedCountry as attacker
+  const damagePrimit = new Map();  // attacker country -> damage received by selectedCountry as defender
+
+  // Cache country names for later use
+  await fetchCountryName(selectedCountryId);
 
   for (const battle of filteredBattles) {
     const battleId = battle._id;
-    const attackerId = battle.attacker.country;
-    const defenderId = battle.defender.country;
 
-    // Make sure we cache attacker and defender country names
-    await Promise.all([attackerId, defenderId].map(fetchCountryName));
+    if (battle.attacker.id === selectedCountryId) {
+      // Selected country is attacker
+      await fetchCountryName(battle.defender.id); // cache defender name
 
-    const [atkList, defList] = await Promise.all([
-      fetchRanking(battleId, "attacker"),
-      fetchRanking(battleId, "defender")
-    ]);
+      // Fetch attacker ranking (damage by countries attacking)
+      const attackerRankings = await fetchRanking(battleId, "attacker");
 
-    for (const entry of atkList.rankings) {
-      const id = entry.country;
-      const damage = entry.value;
-      if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Map(), defended: new Map() });
-      const target = statsByCountry.get(id).attacked;
-      const key = countryMap.get(defenderId);
-      target.set(key, (target.get(key) || 0) + damage);
-    }
+      // Find damage done by selectedCountry in this battle (should be one entry)
+      const selectedAttackerEntry = attackerRankings.find(entry => entry.country.id === selectedCountryId);
+      if (!selectedAttackerEntry) continue; // no damage recorded, skip
 
-    for (const entry of defList.rankings) {
-      const id = entry.country;
-      const damage = entry.value;
-      if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Map(), defended: new Map() });
-      const source = statsByCountry.get(id).defended;
-      const key = countryMap.get(attackerId);
-      source.set(key, (source.get(key) || 0) + damage);
+      const totalDamage = selectedAttackerEntry.value;
+
+      // Add damage against defender country (battle.defender.id)
+      const defenderName = countryMap.get(battle.defender.id);
+      damageDat.set(defenderName, (damageDat.get(defenderName) || 0) + totalDamage);
+
+    } else if (battle.defender.id === selectedCountryId) {
+      // Selected country is defender
+      await fetchCountryName(battle.attacker.id); // cache attacker name
+
+      // Fetch attacker ranking (damage by attackers against defender)
+      const attackerRankings = await fetchRanking(battleId, "attacker");
+
+      // Sum damage by all attackers **except** selectedCountry (which is defender here)
+      for (const entry of attackerRankings) {
+        if (entry.country.id === selectedCountryId) continue; // skip selected country as attacker (shouldn't happen here anyway)
+
+        const attackerName = countryMap.get(entry.country.id);
+        damagePrimit.set(attackerName, (damagePrimit.get(attackerName) || 0) + entry.value);
+      }
     }
   }
+
+  // Store stats for the selected country for use in populateTable
+  statsByCountry.set(selectedCountryId, {
+    name: countryMap.get(selectedCountryId),
+    damageDat,
+    damagePrimit
+  });
 
   populateTable();
 }
@@ -122,56 +141,52 @@ function populateTable() {
   const tbody = document.querySelector("#battleTable tbody");
   tbody.innerHTML = "";
 
-  const { attacked, defended } = statsByCountry.get(countryId);
+  const { damageDat, damagePrimit } = statsByCountry.get(countryId);
 
-  // Convert Maps to arrays of [countryName, damage]
-  const atkArray = Array.from(attacked.entries());
-  const defArray = Array.from(defended.entries());
+  // Convert Maps to arrays and sort descending by damage
+  const datArray = Array.from(damageDat.entries()).sort((a, b) => b[1] - a[1]);
+  const primitArray = Array.from(damagePrimit.entries()).sort((a, b) => b[1] - a[1]);
 
-  // Sort descending by damage value
-  atkArray.sort((a, b) => b[1] - a[1]);
-  defArray.sort((a, b) => b[1] - a[1]);
+  const max = Math.max(datArray.length, primitArray.length);
 
-  const max = Math.max(atkArray.length, defArray.length);
-
-  let totalAtk = 0;
-  let totalDef = 0;
+  let totalDat = 0;
+  let totalPrimit = 0;
 
   for (let i = 0; i < max; i++) {
     const row = document.createElement("tr");
 
-    const atkNameCell = document.createElement("td");
-    const atkDmgCell = document.createElement("td");
-    const defNameCell = document.createElement("td");
-    const defDmgCell = document.createElement("td");
+    const datCountryCell = document.createElement("td");
+    const datDamageCell = document.createElement("td");
+    const primitCountryCell = document.createElement("td");
+    const primitDamageCell = document.createElement("td");
 
-    if (atkArray[i]) {
-      atkNameCell.textContent = atkArray[i][0];
-      atkDmgCell.textContent = atkArray[i][1].toLocaleString();
-      totalAtk += atkArray[i][1];
+    if (datArray[i]) {
+      datCountryCell.textContent = datArray[i][0];
+      datDamageCell.textContent = datArray[i][1].toLocaleString();
+      totalDat += datArray[i][1];
     } else {
-      atkNameCell.textContent = "";
-      atkDmgCell.textContent = "";
+      datCountryCell.textContent = "";
+      datDamageCell.textContent = "";
     }
 
-    if (defArray[i]) {
-      defNameCell.textContent = defArray[i][0];
-      defDmgCell.textContent = defArray[i][1].toLocaleString();
-      totalDef += defArray[i][1];
+    if (primitArray[i]) {
+      primitCountryCell.textContent = primitArray[i][0];
+      primitDamageCell.textContent = primitArray[i][1].toLocaleString();
+      totalPrimit += primitArray[i][1];
     } else {
-      defNameCell.textContent = "";
-      defDmgCell.textContent = "";
+      primitCountryCell.textContent = "";
+      primitDamageCell.textContent = "";
     }
 
-    row.appendChild(atkNameCell);
-    row.appendChild(atkDmgCell);
-    row.appendChild(defNameCell);
-    row.appendChild(defDmgCell);
+    row.appendChild(datCountryCell);
+    row.appendChild(datDamageCell);
+    row.appendChild(primitCountryCell);
+    row.appendChild(primitDamageCell);
 
     tbody.appendChild(row);
   }
 
-  // Add total row
+  // Add totals row
   const totalRow = document.createElement("tr");
   totalRow.style.fontWeight = "bold";
 
@@ -179,17 +194,17 @@ function populateTable() {
   totalLabelCell.textContent = "Total";
   totalRow.appendChild(totalLabelCell);
 
-  const totalAtkCell = document.createElement("td");
-  totalAtkCell.textContent = totalAtk.toLocaleString();
-  totalRow.appendChild(totalAtkCell);
+  const totalDatCell = document.createElement("td");
+  totalDatCell.textContent = totalDat.toLocaleString();
+  totalRow.appendChild(totalDatCell);
 
   // Empty cell between the two totals
   const emptyCell = document.createElement("td");
   totalRow.appendChild(emptyCell);
 
-  const totalDefCell = document.createElement("td");
-  totalDefCell.textContent = totalDef.toLocaleString();
-  totalRow.appendChild(totalDefCell);
+  const totalPrimitCell = document.createElement("td");
+  totalPrimitCell.textContent = totalPrimit.toLocaleString();
+  totalRow.appendChild(totalPrimitCell);
 
   tbody.appendChild(totalRow);
 }
