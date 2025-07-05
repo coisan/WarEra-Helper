@@ -53,7 +53,7 @@ async function buildStats(selectedCountryId) {
 
   // Filter battles where selectedCountryId is attacker or defender
   const filteredBattles = battles.items.filter(battle =>
-    battle.attacker.id === selectedCountryId || battle.defender.id === selectedCountryId
+    battle.attacker.country === selectedCountryId || battle.defender.country === selectedCountryId
   );
 
   // Prepare the two Maps to hold damage info
@@ -66,9 +66,9 @@ async function buildStats(selectedCountryId) {
   for (const battle of filteredBattles) {
     const battleId = battle._id;
 
-    if (battle.attacker.id === selectedCountryId) {
+    if (battle.attacker.country === selectedCountryId) {
       // Selected country is attacker
-      await fetchCountryName(battle.defender.id); // cache defender name
+      await fetchCountryName(battle.defender.country); // cache defender name
 
       // Fetch attacker ranking (damage by countries attacking)
       const attackerRankings = await fetchRanking(battleId, "attacker");
@@ -80,12 +80,12 @@ async function buildStats(selectedCountryId) {
       const totalDamage = selectedAttackerEntry.value;
 
       // Add damage against defender country (battle.defender.id)
-      const defenderName = countryMap.get(battle.defender.id);
+      const defenderName = countryMap.get(battle.defender.country);
       damageDat.set(defenderName, (damageDat.get(defenderName) || 0) + totalDamage);
 
-    } else if (battle.defender.id === selectedCountryId) {
+    } else if (battle.defender.country === selectedCountryId) {
       // Selected country is defender
-      await fetchCountryName(battle.attacker.id); // cache attacker name
+      await fetchCountryName(battle.attacker.country); // cache attacker name
 
       // Fetch attacker ranking (damage by attackers against defender)
       const attackerRankings = await fetchRanking(battleId, "attacker");
