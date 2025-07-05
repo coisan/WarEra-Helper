@@ -28,7 +28,7 @@ async function fetchBattles() {
     const input = {
       limit: 100,
       direction: "backward",
-      cursor: nextCursor
+      ...(nextCursor && { cursor: nextCursor }) // include only if it's defined
     };
 
     const res = await fetch("https://api2.warera.io/trpc/battle.getBattles?input=" + encodeURIComponent(JSON.stringify(input)));
