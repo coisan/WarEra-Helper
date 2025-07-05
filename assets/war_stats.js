@@ -2,7 +2,7 @@ const countryMap = new Map();
 const statsByCountry = new Map();
 
 async function fetchBattles() {
-  const res = await fetch("https://api2.warera.io/trpc/battle.getBattles?input=" + encodeURIComponent(JSON.stringify({ limit: 100, direction: "backwards" })));
+  const res = await fetch("https://api2.warera.io/trpc/battle.getBattles?input=" + encodeURIComponent(JSON.stringify({ limit: 100, direction: "backward" })));
   const data = await res.json();
   return data.result?.data ?? [];
 }
