@@ -74,7 +74,7 @@ async function buildStats(selectedCountryId) {
       const attackerRankings = await fetchRanking(battleId, "attacker");
 
       // Find damage done by selectedCountry in this battle (should be one entry)
-      const selectedAttackerEntry = attackerRankings.rankings.find(entry => entry.country.id === selectedCountryId);
+      const selectedAttackerEntry = attackerRankings.rankings.find(entry => entry.country === selectedCountryId);
       if (!selectedAttackerEntry) continue; // no damage recorded, skip
 
       const totalDamage = selectedAttackerEntry.value;
@@ -92,9 +92,9 @@ async function buildStats(selectedCountryId) {
 
       // Sum damage by all attackers **except** selectedCountry (which is defender here)
       for (const entry of attackerRankings.rankings) {
-        if (entry.country.id === selectedCountryId) continue; // skip selected country as attacker (shouldn't happen here anyway)
+        if (entry.country === selectedCountryId) continue; // skip selected country as attacker (shouldn't happen here anyway)
 
-        const attackerName = countryMap.get(entry.country.id);
+        const attackerName = countryMap.get(entry.country);
         damagePrimit.set(attackerName, (damagePrimit.get(attackerName) || 0) + entry.value);
       }
     }
