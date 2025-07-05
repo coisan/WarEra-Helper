@@ -91,7 +91,7 @@ async function buildStats(selectedCountryId) {
       const attackerRankings = await fetchRanking(battleId, "attacker");
 
       // Sum damage by all attackers **except** selectedCountry (which is defender here)
-      for (const entry of attackerRankings) {
+      for (const entry of attackerRankings.rankings) {
         if (entry.country.id === selectedCountryId) continue; // skip selected country as attacker (shouldn't happen here anyway)
 
         const attackerName = countryMap.get(entry.country.id);
