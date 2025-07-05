@@ -43,9 +43,9 @@ async function buildStats() {
       fetchRanking(battleId, "attacker"),
       fetchRanking(battleId, "defender")
     ]);
-    console.log("atkList:", atkList);
-    for (const entry of atkList) {
-      const id = entry.country.id;
+
+    for (const entry of atkList.rankings) {
+      const id = entry.country;
       const damage = entry.value;
       if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Map(), defended: new Map() });
       const target = statsByCountry.get(id).attacked;
@@ -53,8 +53,8 @@ async function buildStats() {
       target.set(key, (target.get(key) || 0) + damage);
     }
 
-    for (const entry of defList) {
-      const id = entry.country.id;
+    for (const entry of defList.rankings) {
+      const id = entry.country;
       const damage = entry.value;
       if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Map(), defended: new Map() });
       const source = statsByCountry.get(id).defended;
