@@ -35,10 +35,10 @@ async function buildStats() {
   for (let i = 0; i < battles.items.length; i++) {
     const battle = battles.items[i];
     const battleId = battle._id;
-    console.log("BATTLE:", battleId);
+    console.log("BATTLE:", battle);
     const attackerId = battle.attacker.id;
     const defenderId = battle.defender.id;
-
+    console.log("attackerId:", attackerId, "defenderId:", defenderId);
     await Promise.all([attackerId, defenderId].map(fetchCountryName));
 
     const [atkList, defList] = await Promise.all([
