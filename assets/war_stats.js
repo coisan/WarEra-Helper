@@ -123,9 +123,19 @@ function populateTable() {
   tbody.innerHTML = "";
 
   const { attacked, defended } = statsByCountry.get(countryId);
+
+  // Convert Maps to arrays of [countryName, damage]
   const atkArray = Array.from(attacked.entries());
   const defArray = Array.from(defended.entries());
+
+  // Sort descending by damage value
+  atkArray.sort((a, b) => b[1] - a[1]);
+  defArray.sort((a, b) => b[1] - a[1]);
+
   const max = Math.max(atkArray.length, defArray.length);
+
+  let totalAtk = 0;
+  let totalDef = 0;
 
   for (let i = 0; i < max; i++) {
     const row = document.createElement("tr");
@@ -138,6 +148,7 @@ function populateTable() {
     if (atkArray[i]) {
       atkNameCell.textContent = atkArray[i][0];
       atkDmgCell.textContent = atkArray[i][1].toLocaleString();
+      totalAtk += atkArray[i][1];
     } else {
       atkNameCell.textContent = "";
       atkDmgCell.textContent = "";
@@ -146,6 +157,7 @@ function populateTable() {
     if (defArray[i]) {
       defNameCell.textContent = defArray[i][0];
       defDmgCell.textContent = defArray[i][1].toLocaleString();
+      totalDef += defArray[i][1];
     } else {
       defNameCell.textContent = "";
       defDmgCell.textContent = "";
@@ -158,6 +170,28 @@ function populateTable() {
 
     tbody.appendChild(row);
   }
+
+  // Add total row
+  const totalRow = document.createElement("tr");
+  totalRow.style.fontWeight = "bold";
+
+  const totalLabelCell = document.createElement("td");
+  totalLabelCell.textContent = "Total";
+  totalRow.appendChild(totalLabelCell);
+
+  const totalAtkCell = document.createElement("td");
+  totalAtkCell.textContent = totalAtk.toLocaleString();
+  totalRow.appendChild(totalAtkCell);
+
+  // Empty cell between the two totals
+  const emptyCell = document.createElement("td");
+  totalRow.appendChild(emptyCell);
+
+  const totalDefCell = document.createElement("td");
+  totalDefCell.textContent = totalDef.toLocaleString();
+  totalRow.appendChild(totalDefCell);
+
+  tbody.appendChild(totalRow);
 }
 
 populateDropdown();
