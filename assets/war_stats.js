@@ -74,7 +74,7 @@ async function buildStats(selectedCountryId) {
       const attackerRankings = await fetchRanking(battleId, "attacker");
 
       // Find damage done by selectedCountry in this battle (should be one entry)
-      const selectedAttackerEntry = attackerRankings.find(entry => entry.country.id === selectedCountryId);
+      const selectedAttackerEntry = attackerRankings.rankings.find(entry => entry.country.id === selectedCountryId);
       if (!selectedAttackerEntry) continue; // no damage recorded, skip
 
       const totalDamage = selectedAttackerEntry.value;
