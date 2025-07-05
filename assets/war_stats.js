@@ -29,9 +29,17 @@ async function fetchCountryName(id) {
 }
 
 async function buildStats() {
-  const battles = await fetchBattles();
+  const progress = document.getElementById("progress");
+  progress.style.display = "block";
+  progress.value = 0;
+  progress.max = 1;
+  progress.removeAttribute("hidden");
 
-  for (const battle of battles) {
+  const battles = await fetchBattles();
+  progress.max = battles.length;
+
+  for (let i = 0; i < battles.length; i++) {
+    const battle = battles[i];
     const battleId = battle._id;
     const attackerId = battle.attacker.id;
     const defenderId = battle.defender.id;
@@ -45,27 +53,35 @@ async function buildStats() {
 
     for (const entry of atkList) {
       const id = entry.country.id;
-      if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Set(), defended: new Set() });
-      statsByCountry.get(id).attacked.add(countryMap.get(defenderId));
+      const damage = entry.value;
+      if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Map(), defended: new Map() });
+      const target = statsByCountry.get(id).attacked;
+      const key = countryMap.get(defenderId);
+      target.set(key, (target.get(key) || 0) + damage);
     }
 
     for (const entry of defList) {
       const id = entry.country.id;
-      if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Set(), defended: new Set() });
-      statsByCountry.get(id).defended.add(countryMap.get(attackerId));
+      const damage = entry.value;
+      if (!statsByCountry.has(id)) statsByCountry.set(id, { name: countryMap.get(id), attacked: new Map(), defended: new Map() });
+      const source = statsByCountry.get(id).defended;
+      const key = countryMap.get(attackerId);
+      source.set(key, (source.get(key) || 0) + damage);
     }
+
+    progress.value = i + 1;
   }
 
+  progress.style.display = "none";
   populateDropdown();
 }
 
 function populateDropdown() {
   const select = document.getElementById("countrySelect");
-
-  Array.from(statsByCountry.values())
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .forEach(({ name }, i) => {
-      const id = Array.from(statsByCountry.keys())[i];
+  select.innerHTML = '<option value="">-- Alege o țară --</option>';
+  Array.from(statsByCountry.entries())
+    .sort((a, b) => a[1].name.localeCompare(b[1].name))
+    .forEach(([id, { name }]) => {
       const option = document.createElement("option");
       option.value = id;
       option.textContent = name;
@@ -81,18 +97,39 @@ function populateTable() {
   tbody.innerHTML = "";
 
   const { attacked, defended } = statsByCountry.get(countryId);
-  const atkArray = Array.from(attacked);
-  const defArray = Array.from(defended);
+  const atkArray = Array.from(attacked.entries());
+  const defArray = Array.from(defended.entries());
   const max = Math.max(atkArray.length, defArray.length);
 
   for (let i = 0; i < max; i++) {
     const row = document.createElement("tr");
-    const atkCell = document.createElement("td");
-    const defCell = document.createElement("td");
-    atkCell.textContent = atkArray[i] || "";
-    defCell.textContent = defArray[i] || "";
-    row.appendChild(atkCell);
-    row.appendChild(defCell);
+
+    const atkNameCell = document.createElement("td");
+    const atkDmgCell = document.createElement("td");
+    const defNameCell = document.createElement("td");
+    const defDmgCell = document.createElement("td");
+
+    if (atkArray[i]) {
+      atkNameCell.textContent = atkArray[i][0];
+      atkDmgCell.textContent = atkArray[i][1].toLocaleString();
+    } else {
+      atkNameCell.textContent = "";
+      atkDmgCell.textContent = "";
+    }
+
+    if (defArray[i]) {
+      defNameCell.textContent = defArray[i][0];
+      defDmgCell.textContent = defArray[i][1].toLocaleString();
+    } else {
+      defNameCell.textContent = "";
+      defDmgCell.textContent = "";
+    }
+
+    row.appendChild(atkNameCell);
+    row.appendChild(atkDmgCell);
+    row.appendChild(defNameCell);
+    row.appendChild(defDmgCell);
+
     tbody.appendChild(row);
   }
 }
