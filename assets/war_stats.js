@@ -1,6 +1,24 @@
 const countryMap = new Map();
 const statsByCountry = new Map();
 
+document.getElementById("countrySelect").addEventListener("change", (e) => {
+  const selectedId = e.target.value;
+  if (selectedId) {
+    buildStats(selectedId);
+  } else {
+    // Clear table if no selection
+    const tbody = document.querySelector("#battleTable tbody");
+    tbody.innerHTML = "";
+    statsByCountry.clear();
+  }
+});
+
+async function fetchAllCountries() {
+  const res = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
+  const data = await res.json();
+  return data.result?.data ?? [];
+}
+
 async function fetchBattles() {
   const res = await fetch("https://api2.warera.io/trpc/battle.getBattles?input=" + encodeURIComponent(JSON.stringify({ limit: 100, direction: "backward" })));
   const data = await res.json();
@@ -28,15 +46,23 @@ async function fetchCountryName(id) {
   return name;
 }
 
-async function buildStats() {
+async function buildStats(selectedCountryId) {
+  statsByCountry.clear(); // Clear previous stats
+
   const battles = await fetchBattles();
 
-  for (let i = 0; i < battles.items.length; i++) {
-    const battle = battles.items[i];
+  // Filter battles where selectedCountryId is attacker or defender
+  const filteredBattles = battles.items.filter(battle => {
+    return battle.attacker.country === selectedCountryId || battle.defender.country === selectedCountryId;
+  });
+
+  for (const battle of filteredBattles) {
     const battleId = battle._id;
     console.log("BATTLE:", battle);
     const attackerId = battle.attacker.country;
     const defenderId = battle.defender.country;
+
+    // Make sure we cache attacker and defender country names
     await Promise.all([attackerId, defenderId].map(fetchCountryName));
 
     const [atkList, defList] = await Promise.all([
@@ -61,22 +87,24 @@ async function buildStats() {
       const key = countryMap.get(attackerId);
       source.set(key, (source.get(key) || 0) + damage);
     }
-    
   }
-  populateDropdown();
+
+  populateTable();
 }
 
-function populateDropdown() {
+async function populateDropdown() {
   const select = document.getElementById("countrySelect");
   select.innerHTML = '<option value="">-- Alege o țară --</option>';
-  Array.from(statsByCountry.entries())
-    .sort((a, b) => a[1].name.localeCompare(b[1].name))
-    .forEach(([id, { name }]) => {
-      const option = document.createElement("option");
-      option.value = id;
-      option.textContent = name;
-      select.appendChild(option);
-    });
+
+  const countries = await fetchAllCountries();
+
+  countries.forEach(country => {
+    countryMap.set(country._id, country.name); // Cache country names
+    const option = document.createElement("option");
+    option.value = country._id;
+    option.textContent = country.name;
+    select.appendChild(option);
+  });
 }
 
 function populateTable() {
@@ -124,7 +152,7 @@ function populateTable() {
   }
 }
 
-buildStats();
+populateDropdown();
 
 // Nav highlight
 const path = window.location.pathname;
