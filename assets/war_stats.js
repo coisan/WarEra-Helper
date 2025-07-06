@@ -9,6 +9,7 @@ document.getElementById("countrySelect").addEventListener("change", (e) => {
     // Clear table if no selection
     const tbody = document.querySelector("#battleTable tbody");
     tbody.innerHTML = "";
+    countDisplay.textContent = ``;
     statsByCountry.clear();
   }
 });
