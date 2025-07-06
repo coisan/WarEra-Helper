@@ -242,14 +242,12 @@ function populateTable() {
   totalDatCell.textContent = totalDat.toLocaleString();
   totalRow.appendChild(totalDatCell);
 
-  const emptyCell = document.createElement("td");
   totalRow.appendChild(emptyCell);
 
   const totalDatCell = document.createElement("td");
   totalDatCell.textContent = totalDat.toLocaleString();
   totalRow.appendChild(totalAliati);
 
-  const emptyCell = document.createElement("td");
   totalRow.appendChild(emptyCell);
 
   const totalPrimitCell = document.createElement("td");
