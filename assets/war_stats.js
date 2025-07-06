@@ -235,23 +235,22 @@ function populateTable() {
   const totalRow = document.createElement("tr");
   totalRow.style.fontWeight = "bold";
 
-  const totalLabelCell = document.createElement("td");
-  totalLabelCell.textContent = "Total";
-  totalRow.appendChild(totalLabelCell);
+  const emptyCell1 = document.createElement("td");
+  totalRow.appendChild(emptyCell1);
 
   const totalDatCell = document.createElement("td");
   totalDatCell.textContent = totalDat.toLocaleString();
   totalRow.appendChild(totalDatCell);
 
-  const emptyCell1 = document.createElement("td");
-  totalRow.appendChild(emptyCell1);
+  const emptyCell2 = document.createElement("td");
+  totalRow.appendChild(emptyCell2);
 
   const totalAliatiCell = document.createElement("td");
   totalAliatiCell.textContent = totalAliati.toLocaleString();
   totalRow.appendChild(totalAliatiCell);
 
-  const emptyCell2 = document.createElement("td");
-  totalRow.appendChild(emptyCell2);
+  const emptyCell3 = document.createElement("td");
+  totalRow.appendChild(emptyCell3);
 
   const totalPrimitCell = document.createElement("td");
   totalPrimitCell.textContent = totalPrimit.toLocaleString();
