@@ -82,8 +82,9 @@ async function buildStats(selectedCountryId) {
     battle.attacker.country === selectedCountryId || battle.defender.country === selectedCountryId
   );
 
-  const damageDat = new Map();     // Country -> damage dealt by selected country
-  const damagePrimit = new Map();  // Country -> damage dealt to selected country
+  const damageDat = new Map();       // Opponent country -> damage by selected country
+  const damagePrimit = new Map();    // Opponent country -> damage received by selected country
+  const damageAliati = new Map();    // Ally country -> damage by allies (same side as selected)
 
   await fetchCountryName(selectedCountryId);
 
@@ -95,50 +96,45 @@ async function buildStats(selectedCountryId) {
     const isAttacker = attackerId === selectedCountryId;
     const isDefender = defenderId === selectedCountryId;
 
-    // Cache attacker and defender country names
     await Promise.all([attackerId, defenderId].map(fetchCountryName));
 
-    // Fetch rankings
     const attackerRankings = await fetchRanking(battleId, "attacker");
     const defenderRankings = await fetchRanking(battleId, "defender");
 
-    if (isAttacker) {
-      // 1. Damage dealt by selected country → defender
-      const entry = attackerRankings.rankings.find(e => e.country === selectedCountryId);
-      if (entry) {
-        const defenderName = countryMap.get(defenderId);
-        damageDat.set(defenderName, (damageDat.get(defenderName) || 0) + entry.value);
-      }
+    const selectedSide = isAttacker ? "attacker" : "defender";
+    const opponentSide = selectedSide === "attacker" ? "defender" : "attacker";
 
-      // 2. Damage received from defenders (damage primit)
-      for (const entry of defenderRankings.rankings) {
-        if (entry.country === selectedCountryId) continue;
-        const defenderName = countryMap.get(entry.country);
-        damagePrimit.set(defenderName, (damagePrimit.get(defenderName) || 0) + entry.value);
-      }
+    // 1. Damage by selected country to opponent side (damageDat)
+    const selectedRanking = (selectedSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings)
+      .find(e => e.country === selectedCountryId);
+    if (selectedRanking) {
+      const opponentCountryId = selectedSide === "attacker" ? defenderId : attackerId;
+      const opponentName = countryMap.get(opponentCountryId);
+      damageDat.set(opponentName, (damageDat.get(opponentName) || 0) + selectedRanking.value);
     }
 
-    if (isDefender) {
-      // 3. Damage dealt by selected country → attacker
-      const entry = defenderRankings.rankings.find(e => e.country === selectedCountryId);
-      if (entry) {
-        const attackerName = countryMap.get(attackerId);
-        damageDat.set(attackerName, (damageDat.get(attackerName) || 0) + entry.value);
-      }
+    // 2. Damage received by selected country from opponent side (damagePrimit)
+    const opponentRankings = (opponentSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings);
+    for (const entry of opponentRankings) {
+      if (entry.country === selectedCountryId) continue;
+      const opponentName = countryMap.get(entry.country);
+      damagePrimit.set(opponentName, (damagePrimit.get(opponentName) || 0) + entry.value);
+    }
 
-      // 4. Damage received from attackers (damage primit)
-      for (const entry of attackerRankings.rankings) {
-        if (entry.country === selectedCountryId) continue;
-        const attackerName = countryMap.get(entry.country);
-        damagePrimit.set(attackerName, (damagePrimit.get(attackerName) || 0) + entry.value);
-      }
+    // 3. Allied damage: damage done by all other countries on selected side (allies) to the opponent
+    const selectedSideRankings = (selectedSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings);
+    for (const entry of selectedSideRankings) {
+      if (entry.country === selectedCountryId) continue;
+      const allyName = countryMap.get(entry.country);
+      damageAliati.set(allyName, (damageAliati.get(allyName) || 0) + entry.value);
     }
   }
 
   statsByCountry.set(selectedCountryId, {
     name: countryMap.get(selectedCountryId),
     damageDat,
-    damagePrimit
+    damageAliati,
+    damagePrimit    
   });
 
   populateTable();
@@ -175,15 +171,17 @@ function populateTable() {
   const tbody = document.querySelector("#battleTable tbody");
   tbody.innerHTML = "";
 
-  const { damageDat, damagePrimit } = statsByCountry.get(countryId);
+  const { damageDat, damageAliati, damagePrimit } = statsByCountry.get(countryId);
 
   // Convert Maps to arrays and sort descending by damage
   const datArray = Array.from(damageDat.entries()).sort((a, b) => b[1] - a[1]);
+  const aliatiArray = Array.from(damageAliati.entries()).sort((a, b) => b[1] - a[1]);
   const primitArray = Array.from(damagePrimit.entries()).sort((a, b) => b[1] - a[1]);
 
-  const max = Math.max(datArray.length, primitArray.length);
+  const max = Math.max(datArray.length, aliatiArray.length, primitArray.length);
 
   let totalDat = 0;
+  let totalAliati = 0;
   let totalPrimit = 0;
 
   for (let i = 0; i < max; i++) {
@@ -191,6 +189,8 @@ function populateTable() {
 
     const datCountryCell = document.createElement("td");
     const datDamageCell = document.createElement("td");
+    const aliatiCountryCell = document.createElement("td");
+    const aliatiDamageCell = document.createElement("td");
     const primitCountryCell = document.createElement("td");
     const primitDamageCell = document.createElement("td");
 
@@ -201,6 +201,15 @@ function populateTable() {
     } else {
       datCountryCell.textContent = "";
       datDamageCell.textContent = "";
+    }
+
+    if (aliatiArray[i]) {
+      aliatiCountryCell.textContent = aliatiArray[i][0];
+      aliatiDamageCell.textContent = aliatiArray[i][1].toLocaleString();
+      totalAliati += aliatiArray[i][1];
+    } else {
+      aliatiCountryCell.textContent = "";
+      aliatiDamageCell.textContent = "";
     }
 
     if (primitArray[i]) {
@@ -214,6 +223,8 @@ function populateTable() {
 
     row.appendChild(datCountryCell);
     row.appendChild(datDamageCell);
+    row.appendChild(aliatiCountryCell);
+    row.appendChild(aliatiDamageCell);
     row.appendChild(primitCountryCell);
     row.appendChild(primitDamageCell);
 
@@ -224,15 +235,20 @@ function populateTable() {
   const totalRow = document.createElement("tr");
   totalRow.style.fontWeight = "bold";
 
-  const totalLabelCell = document.createElement("td");
-  totalLabelCell.textContent = "Total";
-  totalRow.appendChild(totalLabelCell);
+  const emptyCell = document.createElement("td");
+  totalRow.appendChild(emptyCell);
 
   const totalDatCell = document.createElement("td");
   totalDatCell.textContent = totalDat.toLocaleString();
   totalRow.appendChild(totalDatCell);
 
-  // Empty cell between the two totals
+  const emptyCell = document.createElement("td");
+  totalRow.appendChild(emptyCell);
+
+  const totalDatCell = document.createElement("td");
+  totalDatCell.textContent = totalDat.toLocaleString();
+  totalRow.appendChild(totalAliati);
+
   const emptyCell = document.createElement("td");
   totalRow.appendChild(emptyCell);
 
