@@ -244,9 +244,9 @@ function populateTable() {
 
   totalRow.appendChild(emptyCell);
 
-  const totalDatCell = document.createElement("td");
-  totalDatCell.textContent = totalDat.toLocaleString();
-  totalRow.appendChild(totalAliati);
+  const totalAliatiCell = document.createElement("td");
+  totalAliatiCell.textContent = totalAliati.toLocaleString();
+  totalRow.appendChild(totalAliatiCell);
 
   totalRow.appendChild(emptyCell);
 
