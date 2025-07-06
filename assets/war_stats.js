@@ -77,16 +77,25 @@ async function buildStats(selectedCountryId) {
   statsByCountry.clear();
 
   const battles = await fetchBattles();
+  let asAttacker = 0;
+  let asDefender = 0;
 
-  const filteredBattles = battles.items.filter(battle =>
-    battle.attacker.country === selectedCountryId || battle.defender.country === selectedCountryId
-  );
+  const filteredBattles = battles.items.filter(battle => {
+    const isAtk = battle.attacker.country === selectedCountryId;
+    const isDef = battle.defender.country === selectedCountryId;
+    if (isAtk) asAttacker++;
+    if (isDef) asDefender++;
+    return isAtk || isDef;
+  });
 
   const damageDat = new Map();       // Opponent country -> damage by selected country
   const damagePrimit = new Map();    // Opponent country -> damage received by selected country
   const damageAliati = new Map();    // Ally country -> damage by allies (same side as selected)
 
   await fetchCountryName(selectedCountryId);
+
+  const countDisplay = document.getElementById("battleCount");
+  countDisplay.innerHTML = `Atacuri: ${asAttacker}<br>Apărări: ${asDefender}`;
 
   for (const battle of filteredBattles) {
     const battleId = battle._id;
