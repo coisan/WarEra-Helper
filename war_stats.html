@@ -10,12 +10,10 @@
     <button id="nav-stats" onclick="location.href='war_stats.html'">Statistici război țări</button>
   </nav>
 
-  <label for="countrySelect">Selectează o țară:</label>
-  <select id="countrySelect" onchange="populateTable()" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-left: 0.5rem;">
-    <option value="">-- Alege o țară --</option>
-  </select>
-  <div style="display: inline-block; vertical-align: top;">
-    <span id="battleCount" style="margin-left: 1rem; font-weight: bold; white-space: pre-line; font-family: monospace;"></span>
+  <div style="display: inline-flex; align-items: flex-start;">
+    <label for="countrySelect" style="margin-right: 0.5rem;">Selectează o țară:</label>
+    <select id="countrySelect" onchange="populateTable()" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
+    <div id="battleCount" style="white-space: pre-line; font-weight: bold;"></div>
   </div>
 
   <table id="battleTable">
