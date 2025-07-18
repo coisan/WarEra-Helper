@@ -1,6 +1,11 @@
 let prices = {};
 
 const itemDisplayOrder = [{
+    id: 'petroleum',
+    label: 'Petroleum',
+    class: 'dark-gray'
+  },
+  {
     id: 'lead',
     label: 'Lead',
     class: 'dark-gray'
@@ -34,6 +39,11 @@ const itemDisplayOrder = [{
     id: 'limestone',
     label: 'Limestone',
     class: 'dark-gray'
+  },
+  {
+    id: 'oil',
+    label: 'Oil',
+    class: 'dark-green'
   },
   {
     id: 'lightAmmo',
@@ -87,6 +97,10 @@ const recipes = {
     pp: 1,
     materials: {}
   },
+  petroleum: {
+    pp: 1,
+    materials: {}
+  },
   coca: {
     pp: 1,
     materials: {}
@@ -102,6 +116,12 @@ const recipes = {
   limestone: {
     pp: 1,
     materials: {}
+  },
+  oil: {
+    pp: 1,
+    materials: {
+      petroleum: 1
+    }
   },
   lightAmmo: {
     pp: 1,
