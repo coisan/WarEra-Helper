@@ -1,11 +1,5 @@
-const API = "https://api2.warera.io/trpc";
-
 async function fetchItemList() {
-  const res = await fetch(`${API}/itemTrading.getPrices`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({})
-  });
+  const res = await fetch(`https://api2.warera.io/trpc/itemTrading.getPrices`);
 
   const data = await res.json();
   const items = data.result?.data ?? [];
@@ -13,11 +7,7 @@ async function fetchItemList() {
 }
 
 async function fetchMarketOrders(itemCode) {
-  const res = await fetch(`${API}/tradingOrder.getTopOrders`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ itemCode, limit: 10 })
-  });
+  const res = await fetch(`https://api2.warera.io/trpc/tradingOrder.getTopOrders?input=` + encodeURIComponent(JSON.stringify({ itemCode, limit: 10 })));
 
   const data = await res.json();
   const orders = data.result?.data ?? {};
@@ -43,14 +33,10 @@ async function fetchAllTransactions(itemCode) {
   let transactions = [];
 
   while (true) {
-    const body = { itemCode, limit: 100 };
-    if (cursor !== undefined) body.cursor = cursor;
+    const input = { itemCode, limit: 100 };
+    if (cursor !== undefined) input.cursor = cursor;
 
-    const res = await fetch(`${API}/transaction.getPaginatedTransactions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
+    const res = await fetch(`https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=` + encodeURIComponent(JSON.stringify(input)));
 
     const data = await res.json();
     const items = data.result?.data?.items ?? [];
