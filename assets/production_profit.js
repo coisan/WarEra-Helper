@@ -1,5 +1,5 @@
 let prices = {};
-import {itemDisplayOrder, recipes} from './config.js';
+import {itemDisplayOrder, recipes, makeTableSortable} from './config.js';
 
 window.loadPrices = async function loadPrices() {
   const res = await fetch('/.netlify/functions/getPrices');
@@ -101,6 +101,7 @@ function calculatePPTotal(item) {
 }
 
 loadPrices();
+makeTableSortable("profitTable");
 
 // Nav highlight
 const path = window.location.pathname;
