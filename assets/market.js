@@ -1,9 +1,8 @@
 async function fetchItemList() {
   const res = await fetch(`https://api2.warera.io/trpc/itemTrading.getPrices`);
-
   const data = await res.json();
-  const items = data.result?.data ?? [];
-  return items.map(item => item.itemCode);
+  const items = data.result?.data ?? {};
+  return Object.keys(items);
 }
 
 async function fetchMarketOrders(itemCode) {
