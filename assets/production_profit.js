@@ -21,7 +21,7 @@ function calculateAllProfitabilities() {
       class: colorClass
     }
     of itemDisplayOrder) {
-    if (!prices[id]) continue;
+    if (!prices[id] || id == "case1") continue;
     const sellPrice = prices[id];
     const recipe = recipes[id];
 
