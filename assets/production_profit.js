@@ -1,7 +1,7 @@
 let prices = {};
 import {itemDisplayOrder, recipes} from './config.js';
 
-async function loadPrices() {
+window.loadPrices = async function loadPrices() {
   const res = await fetch('/.netlify/functions/getPrices');
   prices = await res.json();
   calculateAllProfitabilities();
