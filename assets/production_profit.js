@@ -27,8 +27,10 @@ function calculateAllProfitabilities() {
 
     const row = document.createElement('tr');
     const itemCell = document.createElement('td');
-    itemCell.textContent = label;
     itemCell.className = colorClass;
+    const boldLabel = document.createElement('b');
+    boldLabel.textContent = label;
+    itemCell.appendChild(boldLabel);
     row.appendChild(itemCell);
 
     const priceCell = document.createElement('td');
