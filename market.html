@@ -1,1 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Market Stats</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <table id="statsTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Bid</th>
+        <th>Ask</th>
+        <th>Spread</th>
+        <th>24h Volume (units)</th>
+        <th>24h Volume (BTC)</th>
+        <th>Weighted Avg Price</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
+  <script type="module">
+    import { ITEMS, analyzeMarket } from './market_analysis.js';
+
+    const tbody = document.querySelector('#statsTable tbody');
+
+    async function populateStats() {
+      const stats = await analyzeMarket();
+
+      for (const itemCode of ITEMS) {
+        const data = stats[itemCode];
+        if (!data) continue;
+
+        const row = document.createElement('tr');
+
+        const td = (value) => {
+          const cell = document.createElement('td');
+          cell.textContent = value ?? '-';
+          return cell;
+        };
+
+        row.appendChild(td(itemCode));
+        row.appendChild(td(data.bid?.toFixed(3)));
+        row.appendChild(td(data.ask?.toFixed(3)));
+        row.appendChild(td(data.spread));
+        row.appendChild(td(data.volumeUnits));
+        row.appendChild(td(data.volumeBTC?.toFixed(3)));
+        row.appendChild(td(data.weightedAveragePrice?.toFixed(3)));
+
+        tbody.appendChild(row);
+      }
+    }
+
+    populateStats();
+  </script>
+</body>
+</html>
