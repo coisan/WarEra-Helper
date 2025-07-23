@@ -31,6 +31,31 @@ th {
   background-color: #f0f0f0;
 }
 
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 1.5em; /* space for arrow */
+}
+
+th.sortable::after {
+  content: '';
+  position: absolute;
+  right: 0.5em;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8em;
+  color: #888;
+}
+
+th.sortable.asc::after {
+  content: '▲';
+}
+
+th.sortable.desc::after {
+  content: '▼';
+}
+
 .positive {
   color: green;
 }
