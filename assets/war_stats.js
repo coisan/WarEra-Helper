@@ -174,7 +174,7 @@ async function populateDropdown() {
   });
 }
 
-function populateTable() {
+window.populateTable = function populateTable() {
   const countryId = document.getElementById("countrySelect").value;
   if (!countryId || !statsByCountry.has(countryId)) return;
 
