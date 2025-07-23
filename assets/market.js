@@ -1,3 +1,5 @@
+import {itemDisplayOrder} from './config.js';
+
 async function fetchMarketOrders(itemCode) {
   const res = await fetch(`https://api2.warera.io/trpc/tradingOrder.getTopOrders?input=` + encodeURIComponent(JSON.stringify({ itemCode, limit: 10 })));
 
@@ -62,7 +64,6 @@ function createTableRow(cells) {
 }
 
 async function buildMarketTable() {
-  import { itemDisplayOrder } from './production_profit.js';
   const table = document.getElementById("marketTable");
   const tbody = table.querySelector("tbody");
 
