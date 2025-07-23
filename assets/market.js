@@ -75,37 +75,31 @@ async function buildMarketTable() {
 
   table.style.display = "none";
   tbody.innerHTML = "";
+  
+  const itemCodes = await fetchItemList();
 
-  try {
-    const itemCodes = await fetchItemList();
+  for (const itemCode of itemCodes) {
+    const { bid, ask, spread } = await fetchMarketOrders(itemCode);
+    const txs = await fetchAllTransactions(itemCode);
 
-    for (const itemCode of itemCodes) {
-      const { bid, ask, spread } = await fetchMarketOrders(itemCode);
-      const txs = await fetchAllTransactions(itemCode);
+    const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
+    const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
+    const weightedAveragePrice = volumeUnits > 0
+      ? (volumeBTC / volumeUnits)
+      : null;
 
-      const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
-      const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
-      const weightedAveragePrice = volumeUnits > 0
-        ? (volumeBTC / volumeUnits)
-        : null;
-
-      const row = createTableRow([
-        itemCode,
-        formatNumber(bid),
-        formatNumber(ask),
-        spread,
-        volumeUnits.toLocaleString(),
-        formatNumber(volumeBTC),
-        formatNumber(weightedAveragePrice)
-      ]);
-      tbody.appendChild(row);
-    }
-
-  } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:red;">Eroare la încărcarea datelor: ${error.message}</td></tr>`;
-  } finally {
-    table.style.display = "table";
+    const row = createTableRow([
+      itemCode,
+      formatNumber(bid),
+      formatNumber(ask),
+      spread,
+      volumeUnits.toLocaleString(),
+      formatNumber(volumeBTC),
+      formatNumber(weightedAveragePrice)
+    ]);
+    tbody.appendChild(row);
   }
+  table.style.display = "table";
 }
 
 window.addEventListener("DOMContentLoaded", buildMarketTable);
