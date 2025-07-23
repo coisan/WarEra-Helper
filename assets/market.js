@@ -85,7 +85,7 @@ async function buildMarketTable() {
       : null;
 
     const row = createTableRow([
-      label,
+      `<span class="${colorClass}">${label}</span>`,
       formatNumber(bid),
       formatNumber(ask),
       spread,
