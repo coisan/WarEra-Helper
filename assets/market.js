@@ -57,7 +57,7 @@ function createTableRow(cells) {
   const tr = document.createElement("tr");
   for (const cellData of cells) {
     const td = document.createElement("td");
-    td.textContent = cellData;
+    td.innerHTML = cellData;
     tr.appendChild(td);
   }
   return tr;
@@ -90,7 +90,7 @@ async function buildMarketTable() {
       formatNumber(ask),
       spread,
       volumeUnits.toLocaleString(),
-      volumeBTC.toLocaleString(),
+      Math.round(volumeBTC).toLocaleString(),
       formatNumber(weightedAveragePrice)
     ]);
     tbody.appendChild(row);
