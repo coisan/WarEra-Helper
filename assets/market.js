@@ -90,7 +90,7 @@ async function buildMarketTable() {
       formatNumber(ask),
       spread,
       volumeUnits.toLocaleString(),
-      Math.round(volumeBTC),
+      volumeBTC.toLocaleString(),
       formatNumber(weightedAveragePrice)
     ]);
     tbody.appendChild(row);
