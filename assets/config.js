@@ -87,6 +87,11 @@ export const itemDisplayOrder = [{
     id: 'cookedFish',
     label: 'Cooked fish',
     class: 'purple'
+  },
+  {
+    id: 'case1',
+    label: 'Case',
+    class: 'gold'
   }
 ];
 
