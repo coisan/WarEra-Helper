@@ -84,11 +84,9 @@ function createTableRow(cells) {
 }
 
 async function buildMarketTable() {
-  const loadingMsg = document.getElementById("loadingMessage");
   const table = document.getElementById("marketTable");
   const tbody = table.querySelector("tbody");
 
-  loadingMsg.style.display = "block";
   table.style.display = "none";
   tbody.innerHTML = "";
 
@@ -120,7 +118,6 @@ async function buildMarketTable() {
   } catch (error) {
     tbody.innerHTML = `<tr><td colspan="7" style="color:red;">Eroare la încărcarea datelor: ${error.message}</td></tr>`;
   } finally {
-    loadingMsg.style.display = "none";
     table.style.display = "table";
   }
 }
