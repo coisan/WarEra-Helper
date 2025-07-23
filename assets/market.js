@@ -8,7 +8,7 @@ async function fetchItemList() {
   });
 
   const data = await res.json();
-  const items = data.result.data;
+  const items = data.result?.data ?? [];
   return items.map(item => item.itemCode);
 }
 
@@ -20,15 +20,18 @@ async function fetchMarketOrders(itemCode) {
   });
 
   const data = await res.json();
-  const orders = data.result.data;
+  const orders = data.result?.data ?? {};
 
-  const bids = orders.filter(o => o.type === "buy").map(o => o.price).sort((a, b) => b - a);
-  const asks = orders.filter(o => o.type === "sell").map(o => o.price).sort((a, b) => a - b);
+  const buyOrders = orders.buyOrders || [];
+  const sellOrders = orders.sellOrders || [];
 
-  const bid = bids[0] ?? null;
-  const ask = asks[0] ?? null;
+  const bids = buyOrders.map(o => o.price).sort((a, b) => b - a);
+  const asks = sellOrders.map(o => o.price).sort((a, b) => a - b);
+
+  const bid = bids.length ? bids[0] : null;
+  const ask = asks.length ? asks[0] : null;
   const spread = (bid !== null && ask !== null)
-    ? ((ask - bid) / ((ask + bid) / 2) * 100).toFixed(1) + "%"
+    ? (((ask - bid) / ((ask + bid) / 2)) * 100).toFixed(1) + "%"
     : "-";
 
   return { bid, ask, spread };
@@ -50,7 +53,7 @@ async function fetchAllTransactions(itemCode) {
     });
 
     const data = await res.json();
-    const items = data.result.data.items;
+    const items = data.result?.data?.items ?? [];
 
     for (const tx of items) {
       const ts = new Date(tx.createdAt).getTime();
@@ -58,36 +61,81 @@ async function fetchAllTransactions(itemCode) {
       transactions.push(tx);
     }
 
-    cursor = data.result.data.nextCursor;
+    cursor = data.result?.data?.nextCursor;
     if (!cursor) break;
   }
 
   return transactions;
 }
 
-export async function analyzeMarket() {
-  const itemCodes = await fetchItemList();
-  const stats = {};
+function formatNumber(value, decimals = 2) {
+  if (value === null || value === undefined) return "-";
+  return value.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
 
-  for (const itemCode of itemCodes) {
-    const { bid, ask, spread } = await fetchMarketOrders(itemCode);
-    const txs = await fetchAllTransactions(itemCode);
-
-    const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
-    const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
-    const weightedAveragePrice = volumeUnits > 0
-      ? (txs.reduce((sum, tx) => sum + tx.money, 0) / volumeUnits)
-      : null;
-
-    stats[itemCode] = {
-      bid,
-      ask,
-      spread,
-      volumeBTC,
-      volumeUnits,
-      weightedAveragePrice
-    };
+function createTableRow(cells) {
+  const tr = document.createElement("tr");
+  for (const cellData of cells) {
+    const td = document.createElement("td");
+    td.textContent = cellData;
+    tr.appendChild(td);
   }
+  return tr;
+}
 
-  return stats;
+async function buildMarketTable() {
+  const loadingMsg = document.getElementById("loadingMessage");
+  const table = document.getElementById("marketTable");
+  const tbody = table.querySelector("tbody");
+
+  loadingMsg.style.display = "block";
+  table.style.display = "none";
+  tbody.innerHTML = "";
+
+  try {
+    const itemCodes = await fetchItemList();
+
+    for (const itemCode of itemCodes) {
+      const { bid, ask, spread } = await fetchMarketOrders(itemCode);
+      const txs = await fetchAllTransactions(itemCode);
+
+      const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
+      const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
+      const weightedAveragePrice = volumeUnits > 0
+        ? (volumeBTC / volumeUnits)
+        : null;
+
+      const row = createTableRow([
+        itemCode,
+        formatNumber(bid),
+        formatNumber(ask),
+        spread,
+        volumeUnits.toLocaleString(),
+        formatNumber(volumeBTC),
+        formatNumber(weightedAveragePrice)
+      ]);
+      tbody.appendChild(row);
+    }
+
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="7" style="color:red;">Eroare la încărcarea datelor: ${error.message}</td></tr>`;
+  } finally {
+    loadingMsg.style.display = "none";
+    table.style.display = "table";
+  }
+}
+
+window.addEventListener("DOMContentLoaded", buildMarketTable);
+
+// Nav highlight
+const path = window.location.pathname;
+if (path === '/' || path.includes('production_profit.html')) {
+  document.getElementById('nav-calc').style.fontWeight = 'bold';
+  document.getElementById('nav-calc').style.backgroundColor = '#ddd';
+} else if (path.includes('war_stats.html')) {
+  document.getElementById('nav-stats').style.fontWeight = 'bold';
+  document.getElementById('nav-stats').style.backgroundColor = '#ddd';
+} else if (path.includes('market.html')) {
+  document.getElementById('nav-market').style.fontWeight = 'bold';
+  document.getElementById('nav-market').style.backgroundColor = '#ddd';
 }
