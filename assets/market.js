@@ -1,9 +1,4 @@
-async function fetchItemList() {
-  const res = await fetch(`https://api2.warera.io/trpc/itemTrading.getPrices`);
-  const data = await res.json();
-  const items = data.result?.data ?? {};
-  return Object.keys(items);
-}
+import { itemDisplayOrder } from './production_profit.js';
 
 async function fetchMarketOrders(itemCode) {
   const res = await fetch(`https://api2.warera.io/trpc/tradingOrder.getTopOrders?input=` + encodeURIComponent(JSON.stringify({ itemCode, limit: 10 })));
@@ -53,7 +48,7 @@ async function fetchAllTransactions(itemCode) {
   return transactions;
 }
 
-function formatNumber(value, decimals = 2) {
+function formatNumber(value, decimals = 3) {
   if (value === null || value === undefined) return "-";
   return value.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
@@ -74,12 +69,14 @@ async function buildMarketTable() {
 
   table.style.display = "none";
   tbody.innerHTML = "";
-  
-  const itemCodes = await fetchItemList();
 
-  for (const itemCode of itemCodes) {
-    const { bid, ask, spread } = await fetchMarketOrders(itemCode);
-    const txs = await fetchAllTransactions(itemCode);
+  for (const {
+      id,
+      label,
+      class: colorClass
+    } of itemDisplayOrder) {
+    const { bid, ask, spread } = await fetchMarketOrders(id);
+    const txs = await fetchAllTransactions(id);
 
     const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
     const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
@@ -88,12 +85,12 @@ async function buildMarketTable() {
       : null;
 
     const row = createTableRow([
-      itemCode,
+      label,
       formatNumber(bid),
       formatNumber(ask),
       spread,
       volumeUnits.toLocaleString(),
-      formatNumber(volumeBTC),
+      volumeBTC,
       formatNumber(weightedAveragePrice)
     ]);
     tbody.appendChild(row);
