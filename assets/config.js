@@ -189,3 +189,46 @@ export const recipes = {
     }
   }
 };
+
+export function makeTableSortable(tableId) {
+  const table = document.getElementById(tableId);
+  const headers = table.querySelectorAll("th");
+  let currentSort = { column: null, ascending: true };
+
+  headers.forEach(th => {
+    const colIndex = parseInt(th.dataset.column);
+    th.classList.add('sortable');
+
+    th.addEventListener("click", () => {
+      const ascending = currentSort.column === colIndex ? !currentSort.ascending : true;
+      currentSort = { column: colIndex, ascending };
+
+      headers.forEach(h => h.classList.remove('asc', 'desc'));
+      th.classList.add(ascending ? 'asc' : 'desc');
+
+      const tbody = table.querySelector("tbody");
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+
+      rows.sort((a, b) => {
+        const cellA = a.children[colIndex].textContent.trim().replaceAll(',', '');
+        const cellB = b.children[colIndex].textContent.trim().replaceAll(',', '');
+
+        const numA = parseFloat(cellA);
+        const numB = parseFloat(cellB);
+
+        const isNumeric = !isNaN(numA) && !isNaN(numB);
+
+        if (isNumeric) {
+          return ascending ? numA - numB : numB - numA;
+        } else {
+          return ascending
+            ? cellA.localeCompare(cellB)
+            : cellB.localeCompare(cellA);
+        }
+      });
+
+      tbody.innerHTML = "";
+      rows.forEach(row => tbody.appendChild(row));
+    });
+  });
+}
