@@ -26,13 +26,26 @@ function timeUntilReset(lastResetAt) {
 }
 
 async function loadCountries() {
-  const res = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
-  const countries = await res.json();
-  countries.result.data.forEach(country => {
+  const select = document.getElementById("countrySelect");
+  select.innerHTML = '<option value="">-- Alege o țară --</option>';
+
+  const countries = await fetchAllCountries();
+
+  // Sort countries by rankings.countryActivePopulation.value descending
+  countries.sort((a, b) => {
+    const aPop = a.rankings?.countryActivePopulation?.value ?? 0;
+    const bPop = b.rankings?.countryActivePopulation?.value ?? 0;
+    return bPop - aPop;
+  });
+
+  countries.forEach(country => {
+    countryMap.set(country._id, country.name); // Cache country names
+
+    const pop = country.rankings?.countryActivePopulation?.value ?? 0;
     const option = document.createElement("option");
     option.value = country._id;
-    option.textContent = country.name;
-    countrySelect.appendChild(option);
+    option.textContent = `${country.name} (${pop.toLocaleString()})`;
+    select.appendChild(option);
   });
 }
 
@@ -48,7 +61,7 @@ async function loadUsersByCountry(countryId) {
         "cursor": cursor
       };
     if (cursor !== undefined) input.cursor = cursor;
-    const response = await fetch("https://api2.warera.io/trpc/user/getUsersByCountry?input=" + encodeURIComponent(JSON.stringify(input)));
+    const response = await fetch("https://api2.warera.io/trpc/user.getUsersByCountry?input=" + encodeURIComponent(JSON.stringify(input)));
     const data = await response.json();
     const fetchedUsers = data.result.data.users;
     cursor = data.result.data.nextCursor;
