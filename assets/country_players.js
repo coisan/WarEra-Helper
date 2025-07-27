@@ -4,6 +4,7 @@ const ECONOMY_SKILLS = ["energy", "companies", "entrepreneurship", "production"]
 
 const countrySelect = document.getElementById("countrySelect");
 const usersTableBody = document.querySelector("#usersTable tbody");
+const countryMap = new Map();
 
 import {makeTableSortable} from './config.js';
 
