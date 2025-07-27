@@ -5,6 +5,8 @@ const ECONOMY_SKILLS = ["energy", "companies", "entrepreneurship", "production"]
 const countrySelect = document.getElementById("countrySelect");
 const usersTableBody = document.querySelector("#usersTable tbody");
 
+import {makeTableSortable} from './config.js';
+
 function sumSkillPoints(skillObj, skillNames) {
   return skillNames.reduce((total, key) => {
     const level = skillObj[key]?.level || 0;
@@ -104,6 +106,8 @@ async function loadUsersByCountry(countryId) {
       <td>${u.reset}</td>
     </tr>
   `).join("");
+
+  makeTableSortable("usersTable");
 }
 
 countrySelect.addEventListener("change", () => {
