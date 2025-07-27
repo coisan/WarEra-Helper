@@ -270,16 +270,3 @@ window.populateTable = function populateTable() {
 }
 
 populateDropdown();
-
-// Nav highlight
-const path = window.location.pathname;
-if (path === '/' || path.includes('production_profit.html')) {
-  document.getElementById('nav-calc').style.fontWeight = 'bold';
-  document.getElementById('nav-calc').style.backgroundColor = '#ddd';
-} else if (path.includes('war_stats.html')) {
-  document.getElementById('nav-stats').style.fontWeight = 'bold';
-  document.getElementById('nav-stats').style.backgroundColor = '#ddd';
-} else if (path.includes('market.html')) {
-  document.getElementById('nav-market').style.fontWeight = 'bold';
-  document.getElementById('nav-market').style.backgroundColor = '#ddd';
-}
