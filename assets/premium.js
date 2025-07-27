@@ -92,7 +92,10 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
       if (usernameCache[id]) return usernameCache[id];
 
       try {
-        const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(id)));
+        const input = {
+          userId: id
+        };
+        const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
         const data = await res.json();
         const username = data.result?.data?.username || id;
         usernameCache[id] = username;
