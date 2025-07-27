@@ -21,7 +21,7 @@ function timeUntilReset(lastResetAt) {
   const diffMs = now - last;
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
 
-  if (diffMs >= sevenDaysMs) return "available";
+  if (diffMs >= sevenDaysMs || !lastResetAt) return "available";
   const msLeft = sevenDaysMs - diffMs;
   const days = Math.floor(msLeft / (24 * 60 * 60 * 1000));
   const hours = Math.floor((msLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
@@ -88,8 +88,7 @@ async function loadUsersByCountry(countryId) {
       const total = fight + economy;
       const fightRatio = total > 0 ? (fight / total * 100).toFixed(0) + "%" : "0%";
       const economyRatio = total > 0 ? (economy / total * 100).toFixed(0) + "%" : "0%";
-      if (!userLite.dates.lastSkillsResetAt) const reset = "available";
-      else const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
+      const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
 
       users.push({ name, level, fightRatio, economyRatio, reset });
     }
