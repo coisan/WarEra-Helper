@@ -67,13 +67,12 @@ async function loadUsersByCountry(countryId) {
     const input = {
         "countryId": countryId,
         "limit": 100,
-        "cursor": cursor
       };
     if (cursor !== undefined) input.cursor = cursor;
+    
     const response = await fetch("https://api2.warera.io/trpc/user.getUsersByCountry?input=" + encodeURIComponent(JSON.stringify(input)));
     const data = await response.json();
     const fetchedUsers = data.result.data.items;
-    cursor = data.result.data.nextCursor;
 
     for (const user of fetchedUsers) {
       const input = {
@@ -94,7 +93,7 @@ async function loadUsersByCountry(countryId) {
       users.push({ name, level, fightRatio, economyRatio, reset });
     }
 
-    cursor = result.result?.data?.nextCursor;
+    cursor = data.result?.data?.nextCursor;
     if (!cursor) break;
   }
   
