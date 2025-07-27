@@ -98,5 +98,12 @@ async function buildMarketTable() {
   table.style.display = "table";
 }
 
-window.addEventListener("DOMContentLoaded", buildMarketTable);
-makeTableSortable("marketTable");
+const loadingDiv = document.getElementById("loadingMessage");
+loadingDiv.style.display = "block";
+try {
+  window.addEventListener("DOMContentLoaded", buildMarketTable);
+  makeTableSortable("marketTable");
+}
+finally {
+  loadingDiv.style.display = "none";
+}
