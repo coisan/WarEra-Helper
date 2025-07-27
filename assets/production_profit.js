@@ -1,14 +1,13 @@
 let prices = {};
 import {itemDisplayOrder, recipes, makeTableSortable} from './config.js';
 
-window.loadPrices = async function loadPrices() {
+async function loadPrices() {
   const res = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices");
   const data = await res.json();
   prices =  data.result?.data ?? [];
-  calculateAllProfitabilities();
 }
 
-function calculateAllProfitabilities() {
+window.calculateAllProfitabilities = function calculateAllProfitabilities() {
   const bonus = parseFloat(document.getElementById('bonusInput').value);
   const salary = parseFloat(document.getElementById('salaryInput').value);
   if (isNaN(bonus) || isNaN(salary)) {
