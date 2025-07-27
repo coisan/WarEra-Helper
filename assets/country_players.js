@@ -25,6 +25,12 @@ function timeUntilReset(lastResetAt) {
   return `${days}d ${hours}h`;
 }
 
+async function fetchAllCountries() {
+  const res = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
+  const data = await res.json();
+  return data.result?.data ?? [];
+}
+
 async function loadCountries() {
   const select = document.getElementById("countrySelect");
   select.innerHTML = '<option value="">-- Alege o țară --</option>';
