@@ -88,7 +88,8 @@ async function loadUsersByCountry(countryId) {
       const total = fight + economy;
       const fightRatio = total > 0 ? (fight / total * 100).toFixed(0) + "%" : "0%";
       const economyRatio = total > 0 ? (economy / total * 100).toFixed(0) + "%" : "0%";
-      const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
+      if (!userLite.dates.lastSkillsResetAt) reset = "Available";
+      else reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
 
       users.push({ name, level, fightRatio, economyRatio, reset });
     }
