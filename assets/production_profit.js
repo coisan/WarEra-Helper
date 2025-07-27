@@ -9,9 +9,12 @@ window.loadPrices = async function loadPrices() {
 }
 
 function calculateAllProfitabilities() {
-  const bonus = parseFloat(document.getElementById('bonusInput').value) || 0;
+  const bonus = parseFloat(document.getElementById('bonusInput').value);
   const salary = parseFloat(document.getElementById('salaryInput').value);
-  if (isNaN(salary)) return;
+  if (isNaN(bonus) || isNaN(salary)) {
+    alert ("Te rog introdu bonusul de producție și salariul.");
+    return;
+  }
 
   const tbody = document.querySelector('#profitTable tbody');
   tbody.innerHTML = '';
