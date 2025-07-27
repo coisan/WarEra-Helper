@@ -62,10 +62,10 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
       let subtotal = 0;
       const rows = Object.entries(data).map(([type, amount]) => {
         subtotal += amount;
-        return `<tr><td>${type}</td><td>${amount.toFixed(2)} W$</td></tr>`;
+        return `<tr><td>${type}</td><td>${amount.toFixed(3)}</td></tr>`;
       }).join("");
 
-      const subtotalRow = `<tr><td><strong>Total ${title.toLowerCase()}</strong></td><td><strong>${subtotal.toFixed(2)} W$</strong></td></tr>`;
+      const subtotalRow = `<tr><td><strong>Total ${title.toLowerCase()}</strong></td><td><strong>${subtotal.toFixed(3)}</strong></td></tr>`;
       const fullTable = `
         <h3>${title}</h3>
         <table>
@@ -80,7 +80,7 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
     const expensesTable = buildTable(expenses, "Cheltuieli");
     const grandTotal = incomeTable.subtotal - expensesTable.subtotal;
 
-    const grandTotalHtml = `<p><strong>Total ultimele 7 zile:</strong> ${grandTotal.toFixed(2)} W$</p>`;
+    const grandTotalHtml = `<p><strong>Total ultimele 7 zile:</strong> ${grandTotal.toFixed(3)}</p>`;
 
     document.getElementById("premiumStatsOutput").innerHTML =
       incomeTable.html + expensesTable.html + grandTotalHtml;
