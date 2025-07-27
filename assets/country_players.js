@@ -72,7 +72,7 @@ async function loadUsersByCountry(countryId) {
     if (cursor !== undefined) input.cursor = cursor;
     const response = await fetch("https://api2.warera.io/trpc/user.getUsersByCountry?input=" + encodeURIComponent(JSON.stringify(input)));
     const data = await response.json();
-    const fetchedUsers = data.result.data.users;
+    const fetchedUsers = data.result.data.items;
     cursor = data.result.data.nextCursor;
 
     for (const user of fetchedUsers) {
