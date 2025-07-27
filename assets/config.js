@@ -232,3 +232,22 @@ export function makeTableSortable(tableId) {
     });
   });
 }
+
+const navMap = {
+  '/': 'nav-calc',
+  'production_profit.html': 'nav-calc',
+  'war_stats.html': 'nav-stats',
+  'market.html': 'nav-market',
+  'premium_info.html': 'nav-premium'
+};
+
+const currentPath = window.location.pathname;
+for (const key in navMap) {
+  if (currentPath.endsWith(key) || currentPath === key) {
+    const navElement = document.getElementById(navMap[key]);
+    if (navElement) {
+      navElement.classList.add('active-nav');
+    }
+    break;
+  }
+}
