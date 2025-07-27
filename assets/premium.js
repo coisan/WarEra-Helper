@@ -18,6 +18,10 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
     if (cursor !== undefined) input.cursor = cursor;
     const response = await fetch(`https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=` + encodeURIComponent(JSON.stringify(input)));
     const result = await response.json();
+    if (result.error?.data?.httpStatus === 500) {
+      alert("IDul este invalid sau nu a fost găsit.");
+      return;
+    }
     const items = result.result?.data?.items || [];
 
     for (const tx of items) {
