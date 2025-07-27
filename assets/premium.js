@@ -16,12 +16,15 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
       userId
     };
     if (cursor !== undefined) input.cursor = cursor;
+
     const response = await fetch(`https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=` + encodeURIComponent(JSON.stringify(input)));
     const result = await response.json();
+
     if (result.error?.data?.httpStatus === 500) {
       alert("IDul este invalid sau nu a fost găsit.");
       return;
     }
+
     const items = result.result?.data?.items || [];
 
     for (const tx of items) {
@@ -52,12 +55,29 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
   }
 
   const buildTable = (data, title) => {
-    const rows = Object.entries(data).map(
-      ([type, amount]) => `<tr><td>${type}</td><td>${amount.toFixed(2)}</td></tr>`
-    ).join("");
-    return `<h3>${title}</h3><table><thead><tr><th>Tip tranzacție</th><th>Suma</th></tr></thead><tbody>${rows}</tbody></table>`;
+    let subtotal = 0;
+    const rows = Object.entries(data).map(([type, amount]) => {
+      subtotal += amount;
+      return `<tr><td>${type}</td><td>${amount.toFixed(2)} W$</td></tr>`;
+    }).join("");
+
+    const subtotalRow = `<tr><td><strong>Total ${title.toLowerCase()}</strong></td><td><strong>${subtotal.toFixed(2)} W$</strong></td></tr>`;
+    const fullTable = `
+      <h3>${title}</h3>
+      <table>
+        <thead><tr><th>Tip tranzacție</th><th>Suma</th></tr></thead>
+        <tbody>${rows}${subtotalRow}</tbody>
+      </table>
+    `;
+    return { html: fullTable, subtotal };
   };
 
-  const html = buildTable(income, "Venituri") + buildTable(expenses, "Cheltuieli");
-  document.getElementById("premiumStatsOutput").innerHTML = html;
-}
+  const incomeTable = buildTable(income, "Venituri");
+  const expensesTable = buildTable(expenses, "Cheltuieli");
+  const grandTotal = incomeTable.subtotal - expensesTable.subtotal;
+
+  const grandTotalHtml = `<p><strong>Total ultimele 7 zile:</strong> ${grandTotal.toFixed(2)} W$</p>`;
+
+  document.getElementById("premiumStatsOutput").innerHTML =
+    incomeTable.html + expensesTable.html + grandTotalHtml;
+};
