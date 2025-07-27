@@ -238,7 +238,7 @@ const navMap = {
   'production_profit.html': 'nav-calc',
   'war_stats.html': 'nav-stats',
   'market.html': 'nav-market',
-  'premium_info.html': 'nav-premium'
+  'premium.html': 'nav-premium'
 };
 
 const currentPath = window.location.pathname;
