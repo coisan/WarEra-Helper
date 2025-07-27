@@ -70,40 +70,41 @@ async function buildMarketTable() {
   table.style.display = "none";
   tbody.innerHTML = "";
 
-  for (const {
-      id,
-      label,
-      class: colorClass
-    } of itemDisplayOrder) {
-    const { bid, ask, spread } = await fetchMarketOrders(id);
-    const txs = await fetchAllTransactions(id);
-
-    const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
-    const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
-    const weightedAveragePrice = volumeUnits > 0
-      ? (volumeBTC / volumeUnits)
-      : null;
-
-    const row = createTableRow([
-      `<span class="${colorClass}"><b>${label}</b></span>`,
-      formatNumber(bid),
-      formatNumber(ask),
-      spread,
-      volumeUnits.toLocaleString(),
-      Math.round(volumeBTC).toLocaleString(),
-      formatNumber(weightedAveragePrice)
-    ]);
-    tbody.appendChild(row);
+  const loadingDiv = document.getElementById("loadingMessage");
+  loadingDiv.style.display = "block";
+  try {
+    for (const {
+        id,
+        label,
+        class: colorClass
+      } of itemDisplayOrder) {
+      const { bid, ask, spread } = await fetchMarketOrders(id);
+      const txs = await fetchAllTransactions(id);
+  
+      const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
+      const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
+      const weightedAveragePrice = volumeUnits > 0
+        ? (volumeBTC / volumeUnits)
+        : null;
+  
+      const row = createTableRow([
+        `<span class="${colorClass}"><b>${label}</b></span>`,
+        formatNumber(bid),
+        formatNumber(ask),
+        spread,
+        volumeUnits.toLocaleString(),
+        Math.round(volumeBTC).toLocaleString(),
+        formatNumber(weightedAveragePrice)
+      ]);
+      tbody.appendChild(row);
+    }
   }
+  finally {
+    loadingDiv.style.display = "none";
+  }
+    
   table.style.display = "table";
 }
 
-const loadingDiv = document.getElementById("loadingMessage");
-loadingDiv.style.display = "block";
-try {
-  window.addEventListener("DOMContentLoaded", buildMarketTable);
-  makeTableSortable("marketTable");
-}
-finally {
-  loadingDiv.style.display = "none";
-}
+window.addEventListener("DOMContentLoaded", buildMarketTable);
+makeTableSortable("marketTable");
