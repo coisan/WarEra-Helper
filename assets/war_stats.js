@@ -77,76 +77,84 @@ async function fetchCountryName(id) {
 async function buildStats(selectedCountryId) {
   statsByCountry.clear();
 
-  const battles = await fetchBattles();
-  let asAttacker = 0;
-  let asDefender = 0;
+  const loadingDiv = document.getElementById("loadingMessage");
+  loadingDiv.style.display = "block";
 
-  const filteredBattles = battles.items.filter(battle => {
-    const isAtk = battle.attacker.country === selectedCountryId;
-    const isDef = battle.defender.country === selectedCountryId;
-    if (isAtk) asAttacker++;
-    if (isDef) asDefender++;
-    return isAtk || isDef;
-  });
-
-  const damageDat = new Map();       // Opponent country -> damage by selected country
-  const damagePrimit = new Map();    // Opponent country -> damage received by selected country
-  const damageAliati = new Map();    // Ally country -> damage by allies (same side as selected)
-
-  await fetchCountryName(selectedCountryId);
-
-  const countDisplay = document.getElementById("battleCount");
-  countDisplay.textContent = `Atacuri: ${asAttacker}\nApărări: ${asDefender}`;
-
-  for (const battle of filteredBattles) {
-    const battleId = battle._id;
-    const attackerId = battle.attacker.country;
-    const defenderId = battle.defender.country;
-
-    const isAttacker = attackerId === selectedCountryId;
-    const isDefender = defenderId === selectedCountryId;
-
-    await Promise.all([attackerId, defenderId].map(fetchCountryName));
-
-    const attackerRankings = await fetchRanking(battleId, "attacker");
-    const defenderRankings = await fetchRanking(battleId, "defender");
-
-    const selectedSide = isAttacker ? "attacker" : "defender";
-    const opponentSide = selectedSide === "attacker" ? "defender" : "attacker";
-
-    // 1. Damage by selected country to opponent side (damageDat)
-    const selectedRanking = (selectedSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings)
-      .find(e => e.country === selectedCountryId);
-    if (selectedRanking) {
-      const opponentCountryId = selectedSide === "attacker" ? defenderId : attackerId;
-      const opponentName = countryMap.get(opponentCountryId);
-      damageDat.set(opponentName, (damageDat.get(opponentName) || 0) + selectedRanking.value);
+  try {
+    const battles = await fetchBattles();
+    let asAttacker = 0;
+    let asDefender = 0;
+  
+    const filteredBattles = battles.items.filter(battle => {
+      const isAtk = battle.attacker.country === selectedCountryId;
+      const isDef = battle.defender.country === selectedCountryId;
+      if (isAtk) asAttacker++;
+      if (isDef) asDefender++;
+      return isAtk || isDef;
+    });
+  
+    const damageDat = new Map();       // Opponent country -> damage by selected country
+    const damagePrimit = new Map();    // Opponent country -> damage received by selected country
+    const damageAliati = new Map();    // Ally country -> damage by allies (same side as selected)
+  
+    await fetchCountryName(selectedCountryId);
+  
+    const countDisplay = document.getElementById("battleCount");
+    countDisplay.textContent = `Atacuri: ${asAttacker}\nApărări: ${asDefender}`;
+  
+    for (const battle of filteredBattles) {
+      const battleId = battle._id;
+      const attackerId = battle.attacker.country;
+      const defenderId = battle.defender.country;
+  
+      const isAttacker = attackerId === selectedCountryId;
+      const isDefender = defenderId === selectedCountryId;
+  
+      await Promise.all([attackerId, defenderId].map(fetchCountryName));
+  
+      const attackerRankings = await fetchRanking(battleId, "attacker");
+      const defenderRankings = await fetchRanking(battleId, "defender");
+  
+      const selectedSide = isAttacker ? "attacker" : "defender";
+      const opponentSide = selectedSide === "attacker" ? "defender" : "attacker";
+  
+      // 1. Damage by selected country to opponent side (damageDat)
+      const selectedRanking = (selectedSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings)
+        .find(e => e.country === selectedCountryId);
+      if (selectedRanking) {
+        const opponentCountryId = selectedSide === "attacker" ? defenderId : attackerId;
+        const opponentName = countryMap.get(opponentCountryId);
+        damageDat.set(opponentName, (damageDat.get(opponentName) || 0) + selectedRanking.value);
+      }
+  
+      // 2. Damage received by selected country from opponent side (damagePrimit)
+      const opponentRankings = (opponentSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings);
+      for (const entry of opponentRankings) {
+        if (entry.country === selectedCountryId) continue;
+        const opponentName = countryMap.get(entry.country);
+        damagePrimit.set(opponentName, (damagePrimit.get(opponentName) || 0) + entry.value);
+      }
+  
+      // 3. Allied damage: damage done by all other countries on selected side (allies) to the opponent
+      const selectedSideRankings = (selectedSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings);
+      for (const entry of selectedSideRankings) {
+        if (entry.country === selectedCountryId) continue;
+        const allyName = countryMap.get(entry.country);
+        damageAliati.set(allyName, (damageAliati.get(allyName) || 0) + entry.value);
+      }
     }
-
-    // 2. Damage received by selected country from opponent side (damagePrimit)
-    const opponentRankings = (opponentSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings);
-    for (const entry of opponentRankings) {
-      if (entry.country === selectedCountryId) continue;
-      const opponentName = countryMap.get(entry.country);
-      damagePrimit.set(opponentName, (damagePrimit.get(opponentName) || 0) + entry.value);
-    }
-
-    // 3. Allied damage: damage done by all other countries on selected side (allies) to the opponent
-    const selectedSideRankings = (selectedSide === "attacker" ? attackerRankings.rankings : defenderRankings.rankings);
-    for (const entry of selectedSideRankings) {
-      if (entry.country === selectedCountryId) continue;
-      const allyName = countryMap.get(entry.country);
-      damageAliati.set(allyName, (damageAliati.get(allyName) || 0) + entry.value);
-    }
+  
+    statsByCountry.set(selectedCountryId, {
+      name: countryMap.get(selectedCountryId),
+      damageDat,
+      damageAliati,
+      damagePrimit    
+    });
   }
-
-  statsByCountry.set(selectedCountryId, {
-    name: countryMap.get(selectedCountryId),
-    damageDat,
-    damageAliati,
-    damagePrimit    
-  });
-
+  finally {
+    loadingDiv.style.display = "none";
+  }
+  
   populateTable();
 }
 
@@ -174,7 +182,7 @@ async function populateDropdown() {
   });
 }
 
-window.populateTable = function populateTable() {
+function populateTable() {
   const countryId = document.getElementById("countrySelect").value;
   if (!countryId || !statsByCountry.has(countryId)) return;
 
