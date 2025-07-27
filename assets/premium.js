@@ -106,18 +106,72 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
 
     const buildEmployeeTable = async (data) => {
       if (Object.keys(data).length === 0) return "";
-
-      const rows = await Promise.all(
+    
+      const countryCache = {};
+    
+      async function getCountryName(countryId) {
+        if (!countryId) return "-";
+        if (countryCache[countryId]) return countryCache[countryId];
+    
+        try {
+          const input = { countryId };
+          const res = await fetch(
+            `https://api2.warera.io/trpc/country.getCountryById?input=` +
+              encodeURIComponent(JSON.stringify(input))
+          );
+          const result = await res.json();
+          const name = result.result?.data?.name || countryId;
+          countryCache[countryId] = name;
+          return name;
+        } catch {
+          return countryId;
+        }
+      }
+    
+      const entries = await Promise.all(
         Object.entries(data).map(async ([id, { money, quantity }]) => {
-          const username = await getUsername(id);
-          return `<tr><td>${username}</td><td>${money.toFixed(3)}</td><td>${quantity}</td></tr>`;
+          const input = { userId: id };
+          try {
+            const res = await fetch(
+              `https://api2.warera.io/trpc/user.getUserLite?input=` +
+                encodeURIComponent(JSON.stringify(input))
+            );
+            const result = await res.json();
+            const user = result.result?.data;
+            return {
+              username: user?.username || id,
+              country: await getCountryName(user?.country),
+              money,
+              quantity,
+            };
+          } catch {
+            return {
+              username: id,
+              country: "-",
+              money,
+              quantity,
+            };
+          }
         })
       );
-
+    
+      entries.sort((a, b) => b.quantity - a.quantity);
+    
+      const rows = entries.map((entry) => {
+        return `<tr>
+          <td>${entry.username}</td>
+          <td>${entry.country}</td>
+          <td>${entry.money.toFixed(3)}</td>
+          <td>${entry.quantity}</td>
+        </tr>`;
+      });
+    
       return `
         <h3>KPI performanță angajați</h3>
         <table>
-          <thead><tr><th>Angajat</th><th>Salariu</th><th>Producție</th></tr></thead>
+          <thead>
+            <tr><th>Angajat</th><th>Țară</th><th>Salariu</th><th>Producție</th></tr>
+          </thead>
           <tbody>${rows.join("")}</tbody>
         </table>
       `;
