@@ -93,3 +93,8 @@ nav {
 nav button {
   margin-right: 1rem;
 }
+
+.active-nav {
+  font-weight: bold;
+  background-color: #ddd;
+}
