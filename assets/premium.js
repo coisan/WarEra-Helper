@@ -1,4 +1,4 @@
-async function generatePremiumInfo() {
+window.generatePremiumInfo = async function generatePremiumInfo() {
   const userId = document.getElementById("playerIdInput").value.trim();
   if (!userId) {
     alert("Te rog introdu un ID de jucător valid.");
