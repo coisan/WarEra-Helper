@@ -55,16 +55,15 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
 
       if (tx.buyerId === userId) {
         expenses[type] = (expenses[type] || 0) + money;
+        if (type === "wage" && tx.buyerId) {
+          if (!employeeWork[tx.sellerId]) {
+            employeeWork[tx.sellerId] = { money: 0, quantity: 0 };
+          }
+          employeeWork[tx.sellerId].money += money;
+          employeeWork[tx.sellerId].quantity += quantity;
+        }
       } else if (tx.sellerId === userId) {
         income[type] = (income[type] || 0) + money;
-
-        if (type === "wage" && tx.buyerId) {
-          if (!employeeWork[tx.buyerId]) {
-            employeeWork[tx.buyerId] = { money: 0, quantity: 0 };
-          }
-          employeeWork[tx.buyerId].money += money;
-          employeeWork[tx.buyerId].quantity += quantity;
-        }
       }
     }
 
@@ -118,7 +117,7 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
       return `
         <h3>KPI performanță angajați</h3>
         <table>
-          <thead><tr><th>Angajat</th><th>Suma</th><th>Cantitate</th></tr></thead>
+          <thead><tr><th>Angajat</th><th>Salariu</th><th>Producție</th></tr></thead>
           <tbody>${rows.join("")}</tbody>
         </table>
       `;
@@ -127,7 +126,7 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
     const incomeTable = buildTable(income, "Venituri");
     const expensesTable = buildTable(expenses, "Cheltuieli");
     const grandTotal = incomeTable.subtotal - expensesTable.subtotal;
-    const grandTotalHtml = `<p><strong>Total ultimele 7 zile:</strong> ${grandTotal.toFixed(3)}</p>`;
+    const grandTotalHtml = `<p><strong>Balanță venituri - cheltuieli (ultimele 7 zile):</strong> ${grandTotal.toFixed(3)}</p>`;
     const employeeTable = await buildEmployeeTable(employeeWork);
 
     document.getElementById("premiumStatsOutput").innerHTML =
