@@ -238,7 +238,8 @@ const navMap = {
   'production_profit.html': 'nav-calc',
   'war_stats.html': 'nav-stats',
   'market.html': 'nav-market',
-  'premium.html': 'nav-premium'
+  'premium.html': 'nav-premium',
+  'country_players.html': 'nav-country'
 };
 
 const currentPath = window.location.pathname;
