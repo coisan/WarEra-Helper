@@ -2,8 +2,9 @@ let prices = {};
 import {itemDisplayOrder, recipes, makeTableSortable} from './config.js';
 
 window.loadPrices = async function loadPrices() {
-  const res = await fetch('/.netlify/functions/getPrices');
-  prices = await res.json();
+  const res = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices");
+  const data = await res.json();
+  prices =  data.result?.data ?? [];
   calculateAllProfitabilities();
 }
 
