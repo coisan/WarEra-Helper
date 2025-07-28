@@ -1,5 +1,5 @@
 # Top-level configuration
-name = "my-worker"
+name = "ro"
 main = "production_profit.html"
 compatibility_date = "2022-07-12"
 
