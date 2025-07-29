@@ -83,10 +83,24 @@ async function buildMarketTable() {
   
       const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
       const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
-      const weightedAveragePrice = volumeUnits > 0
+      const averagePrice = volumeUnits > 0
         ? (volumeBTC / volumeUnits)
         : null;
-  
+
+      const marketAveragePrice = (bid !== null && ask !== null)
+        ? (bid + ask) / 2
+        : null;
+
+      // Add trend indicator
+      let trendHTML = "";
+      if (averagePrice !== null && marketAveragePrice !== null) {
+        if (marketAveragePrice > averagePrice) {
+          trendHTML = ` <span class="positive" title="Market avg ${formatNumber(marketAveragePrice)} is higher than 24h avg">▲</span>`;
+        } else if (marketAveragePrice < averagePrice) {
+          trendHTML = ` <span class="negative" title="Market avg ${formatNumber(marketAveragePrice)} is lower than 24h avg">▼</span>`;
+        }
+      }
+
       const row = createTableRow([
         `<span class="${colorClass}"><b>${label}</b></span>`,
         formatNumber(bid),
@@ -94,7 +108,7 @@ async function buildMarketTable() {
         spread,
         volumeUnits.toLocaleString(),
         Math.round(volumeBTC).toLocaleString(),
-        formatNumber(weightedAveragePrice)
+        `${formatNumber(averagePrice)}${trendHTML}`
       ]);
       tbody.appendChild(row);
     }
