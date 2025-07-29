@@ -1,97 +1,75 @@
 :root {
-  --primary-color: #13141c;
-  --secondary-color: #1c1e2b;
-  --accent-color: #ffa726;
-  --text-color: #ffffff;
-  --muted-text: #aaaaaa;
-  --positive-color: #4caf50;
-  --negative-color: #ef5350;
-  --border-color: #2c2f3f;
-  --hover-bg: #2a2d3d;
-  --header-bg: #252836;
-  --font-stack: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --bg-color: #1c1c1c;
+  --text-color: #f0f0f0;
+  --secondary-color: #2a2a2a;
+  --border-color: #444;
+  --accent-color: #e53935; /* WarEra red */
 }
 
 body {
-  font-family: var(--font-stack);
-  background-color: var(--primary-color);
+  background-color: var(--bg-color);
   color: var(--text-color);
-  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
   margin: 0;
-}
-
-nav {
-  margin-bottom: 2rem;
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 1rem;
-}
-
-nav button {
-  background: none;
-  border: none;
-  color: var(--muted-text);
-  font-size: 1rem;
-  margin-right: 1rem;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-}
-
-nav button:hover,
-nav .active-nav {
-  color: var(--accent-color);
-  background-color: var(--hover-bg);
-  border-radius: 4px;
+  padding: 2rem;
 }
 
 label {
   display: block;
   margin-top: 1rem;
-  font-weight: 600;
-  color: var(--muted-text);
+  font-weight: bold;
 }
 
-input, button {
+input, button, select {
   width: 220px;
-  padding: 0.6rem;
+  padding: 0.5rem;
   margin-top: 0.5rem;
-  border: none;
-  border-radius: 4px;
   background-color: var(--secondary-color);
   color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-color);
 }
 
 button {
   background-color: var(--accent-color);
-  color: #000;
+  color: #fff;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
-  opacity: 0.9;
+  background-color: #c62828;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 2rem;
+  background-color: var(--secondary-color);
 }
 
 th, td {
-  padding: 0.75rem;
+  padding: 0.5rem;
   border: 1px solid var(--border-color);
   text-align: center;
 }
 
 th {
-  background-color: var(--header-bg);
-  font-weight: bold;
-  color: var(--text-color);
+  background-color: #333;
 }
 
 th.sortable {
   cursor: pointer;
   user-select: none;
   position: relative;
+  padding-right: 1.5em;
 }
 
 th.sortable::after {
@@ -101,7 +79,7 @@ th.sortable::after {
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.8em;
-  color: var(--muted-text);
+  color: #888;
 }
 
 th.sortable.asc::after {
@@ -113,23 +91,23 @@ th.sortable.desc::after {
 }
 
 .positive {
-  color: var(--positive-color);
+  color: #66bb6a;
 }
 
 .negative {
-  color: var(--negative-color);
+  color: #ef5350;
 }
 
 .dark-gray {
-  color: #cfd8dc;
+  color: #b0bec5;
 }
 
 .dark-green {
-  color: #a5d6a7;
+  color: #81c784;
 }
 
 .dark-blue {
-  color: #90caf9;
+  color: #64b5f6;
 }
 
 .purple {
@@ -137,10 +115,44 @@ th.sortable.desc::after {
 }
 
 .gold {
-  color: #fbc02d;
+  color: #fdd835;
 }
 
-#loadingMessage {
-  color: var(--muted-text);
-  margin-top: 2rem;
+nav {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+nav button {
+  margin-right: 1rem;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+}
+
+nav button:hover {
+  background-color: #c62828;
+  color: #fff;
+}
+
+.active-nav {
+  font-weight: bold;
+  background-color: var(--accent-color);
+  color: #fff;
+  border-radius: 4px;
+}
+
+/* Dropdown fix for better theming */
+select {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.6rem;
+  font-family: inherit;
+  font-size: 1rem;
+  appearance: none;
+  cursor: pointer;
 }
