@@ -95,9 +95,9 @@ async function buildMarketTable() {
       let trendHTML = "";
       if (averagePrice !== null && marketAveragePrice !== null) {
         if (marketAveragePrice > averagePrice) {
-          trendHTML = ` <span class="positive" title="Market avg ${formatNumber(marketAveragePrice)} is higher than 24h avg">▲</span>`;
+          trendHTML = ` <span class="positive" title="Prețul actual ${formatNumber(marketAveragePrice)} este mai mare decât media din ultimele 24h">▲</span>`;
         } else if (marketAveragePrice < averagePrice) {
-          trendHTML = ` <span class="negative" title="Market avg ${formatNumber(marketAveragePrice)} is lower than 24h avg">▼</span>`;
+          trendHTML = ` <span class="negative" title="Prețul actual ${formatNumber(marketAveragePrice)} este mai mic decât media din ultimele 24h">▼</span>`;
         }
       }
 
