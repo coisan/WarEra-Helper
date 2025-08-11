@@ -156,36 +156,3 @@ select {
   appearance: none;
   cursor: pointer;
 }
-
-.price-bar {
-  position: relative;
-  height: 12px;
-  background-color: #2a2a2a; /* matches your overall dark gray */
-  border-radius: 4px;
-  margin: 0 4px;
-}
-
-.price-bar-min,
-.price-bar-max {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: #888; /* muted gray markers */
-}
-
-.price-bar-min {
-  left: 0;
-}
-
-.price-bar-max {
-  right: 0;
-}
-
-.price-bar-avg {
-  position: absolute;
-  top: -2px;
-  width: 2px;
-  height: 16px;
-  background-color: #ff4040; /* WarEra red for average marker */
-}
