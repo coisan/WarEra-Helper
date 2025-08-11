@@ -99,7 +99,7 @@ async function init() {
     // Populate dropdown
     const select = document.getElementById("itemSelect");
     itemDisplayOrder.forEach(item => {
-        let opt = document.createElement("option");
+        const opt = document.createElement("option");
         opt.value = item.id;
         opt.textContent = item.label;
         select.appendChild(opt);
@@ -107,9 +107,9 @@ async function init() {
 
     // On change
     select.addEventListener("change", () => {
-        let selectedItem = select.value;
-        let transactions = await fetchAllTransactions(selectedItem);
-        let chartData = processTransactions(transactions);
+        const selectedItem = select.value;
+        const transactions = await fetchAllTransactions(selectedItem);
+        const chartData = processTransactions(transactions);
         document.getElementById("priceHistoryChart").remove();
         const canvas = document.createElement("canvas");
         canvas.id = "priceHistoryChart";
