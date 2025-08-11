@@ -62,13 +62,8 @@ async function processTransactions(inputItem) {
 }
 
 function renderChart(data) {
+  
     const canvas = document.getElementById("priceHistoryChart");
-
-    // Destroy previous chart if exists
-    if (priceHistoryChartInstance) {
-        priceHistoryChartInstance.destroy();
-    }
-
     const barData = data.map(d => [d.min, d.max]);
     const avgData = data.map(d => d.avg);
 
@@ -77,21 +72,19 @@ function renderChart(data) {
             labels: data.map(d => d.day),
             datasets: [
                 {
-                    label: 'Min-Max Range',
+                    label: 'Preț Min-Max',
                     type: 'bar',
                     data: barData,
                     backgroundColor: 'rgba(0, 123, 255, 0.5)',
                     borderColor: 'rgba(0, 123, 255, 1)',
-                    borderWidth: 1,
                     order: 1
                 },
                 {
-                    label: 'Average Price',
+                    label: 'Preț mediu',
                     type: 'line',
                     data: avgData,
                     borderColor: 'red',
-                    fill: false,
-                    tension: 0.3,
+                    tension: 0.1,
                     order: 0
                 }
             ]
@@ -103,11 +96,11 @@ function renderChart(data) {
             },
             scales: {
                 x: {
-                    title: { display: true, text: "Date" },
+                    title: { display: true, text: "Data" },
                     stacked: false
                 },
                 y: {
-                    title: { display: true, text: "Price" },
+                    title: { display: true, text: "Preț" },
                     stacked: false,
                     beginAtZero: false
                 }
@@ -129,6 +122,9 @@ async function init() {
 
     // On change
     select.addEventListener("change", async () => {
+        if (priceHistoryChartInstance) {
+            priceHistoryChartInstance.destroy();
+        }
         const selectedItem = select.value;
         const chartData = await processTransactions(selectedItem);
         renderChart(chartData);
