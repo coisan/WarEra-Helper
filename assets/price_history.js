@@ -46,7 +46,7 @@ async function processTransactions(inputItem) {
     const result = Object.keys(dailyData)
         .sort()
         .map(day => {
-            const prices = dailyData[dayKey].map(p => p.price);
+            const prices = dailyData[day].map(p => p.price);
             const min = Number(Math.min(...prices).toFixed(3));
             const max = Number(Math.max(...prices).toFixed(3));
             const totalCost = dailyEntries.reduce((sum, entry) => sum + entry.cost, 0);
