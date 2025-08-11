@@ -2,7 +2,7 @@ import {itemDisplayOrder} from './config.js';
 let priceHistoryChartInstance = null;
 
 async function fetchAllTransactions(itemCode) {
-  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
   let cursor = undefined;
   let transactions = [];
 
@@ -17,7 +17,7 @@ async function fetchAllTransactions(itemCode) {
 
     for (const tx of items) {
       const ts = new Date(tx.createdAt).getTime();
-      if (ts < sevenDaysAgo) return transactions;
+      if (ts < oneDayAgo) return transactions;
       transactions.push(tx);
     }
 
@@ -36,10 +36,13 @@ async function processTransactions(inputItem) {
     const dailyData = {};
     transactions.forEach(tx => {
         const date = new Date(tx.createdAt);
-        const dayKey = date.toISOString().split("T")[0];
+        //const dayKey = date.toISOString().split("T")[0];
+        const dayPart = date.toISOString().split("T")[0];
+        const hourPart = date.getUTCHours().toString().padStart(2, '0');
+        const hourKey = `${dayPart}T${hourPart}:00:00Z`;
 
-        if (!dailyData[dayKey]) dailyData[dayKey] = [];
-        dailyData[dayKey].push({price: tx.money/tx.quantity, cost: tx.money, volume: tx.quantity});
+        if (!dailyData[hourKey]) dailyData[hourKey] = [];
+        dailyData[hourKey].push({price: tx.money/tx.quantity, cost: tx.money, volume: tx.quantity});
     });
 
     // Convert to array sorted by date
