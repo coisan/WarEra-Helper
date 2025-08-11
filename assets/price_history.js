@@ -1,5 +1,3 @@
-Chart.register(window.ChartDataLabels);
-
 import {itemDisplayOrder} from './config.js';
 let priceHistoryChartInstance = null;
 
@@ -70,76 +68,44 @@ function renderChart(data) {
     const avgData = data.map(d => d.avg);
 
     priceHistoryChartInstance = new Chart(canvas, {
-      data: {
-        labels: data.map(d => d.day),
-        datasets: [
-          {
-            label: 'Min-Max Range',
-            type: 'bar',
-            data: barData,
-            backgroundColor: 'rgba(0, 123, 255, 0.5)',
-            borderColor: 'rgba(0, 123, 255, 1)',
-            borderWidth: 1,
-          },
-          {
-            label: 'Min Value Labels',
-            type: 'bar',
-            data: data.map(d => d.min),
-            backgroundColor: 'transparent',
-            borderWidth: 0,
-            datalabels: {
-              align: 'start', // bottom of the bar
-              anchor: 'end',
-              formatter: val => val.toFixed(3),
-              color: 'blue',
-              font: { weight: 'bold' }
-            }
-          },
-          {
-            label: 'Max Value Labels',
-            type: 'bar',
-            data: data.map(d => d.max),
-            backgroundColor: 'transparent',
-            borderWidth: 0,
-            datalabels: {
-              align: 'end', // top of the bar
-              anchor: 'start',
-              formatter: val => val.toFixed(3),
-              color: 'blue',
-              font: { weight: 'bold' }
-            }
-          },
-          {
-            label: 'Average Price',
-            type: 'line',
-            data: avgData,
-            borderColor: 'red',
-            fill: false,
-            tension: 0.3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "top" },
-          datalabels: {
-            display: true,
-          }
+        data: {
+            labels: data.map(d => d.day),
+            datasets: [
+                {
+                    label: 'Min-Max Range',
+                    type: 'bar',
+                    data: barData,
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'Average Price',
+                    type: 'line',
+                    data: avgData,
+                    borderColor: 'red',
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
         },
-        scales: {
-          x: {
-            title: { display: true, text: "Date" },
-            stacked: false
-          },
-          y: {
-            title: { display: true, text: "Price" },
-            stacked: false,
-            beginAtZero: false
-          }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: "top" }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: "Date" },
+                    stacked: false
+                },
+                y: {
+                    title: { display: true, text: "Price" },
+                    stacked: false,
+                    beginAtZero: false
+                }
+            }
         }
-      },
-      plugins: [ChartDataLabels],
     });
 }
 
