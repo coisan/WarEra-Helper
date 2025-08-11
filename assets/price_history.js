@@ -57,7 +57,6 @@ async function processTransactions(inputItem) {
 
 function renderChart(data) {
     const ctx = document.getElementById("priceHistoryChart").getContext("2d");
-    console.log(data);
     new Chart(ctx, {
         type: "line",
         data: {
@@ -108,7 +107,7 @@ async function init() {
     });
 
     // On change
-    select.addEventListener("change", () => {
+    select.addEventListener("change", async () => {
         const selectedItem = select.value;
         const chartData = await processTransactions(selectedItem);
         document.getElementById("priceHistoryChart").remove();
