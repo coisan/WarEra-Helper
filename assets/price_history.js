@@ -27,7 +27,9 @@ async function fetchAllTransactions(itemCode) {
   return transactions;
 }
 
-function processTransactions(transactions) {
+async function processTransactions(inputItem) {
+
+    const transactions = await fetchAllTransactions(inputItem);
 
     // Group by day
     const dailyData = {};
@@ -108,8 +110,7 @@ async function init() {
     // On change
     select.addEventListener("change", () => {
         const selectedItem = select.value;
-        const transactions = await fetchAllTransactions(selectedItem);
-        const chartData = processTransactions(transactions);
+        const chartData = processTransactions(selectedItem);
         document.getElementById("priceHistoryChart").remove();
         const canvas = document.createElement("canvas");
         canvas.id = "priceHistoryChart";
