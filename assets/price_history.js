@@ -39,17 +39,19 @@ async function processTransactions(inputItem) {
         const dayKey = date.toISOString().split("T")[0];
 
         if (!dailyData[dayKey]) dailyData[dayKey] = [];
-        dailyData[dayKey].push(tx.money/tx.quantity);
+        dailyData[dayKey].push({price: tx.money/tx.quantity, cost: tx.money, volume: tx.quantity});
     });
 
     // Convert to array sorted by date
     const result = Object.keys(dailyData)
         .sort()
         .map(day => {
-            const prices = dailyData[day];
+            const prices = dailyData[dayKey].map(p => p.price);
             const min = Number(Math.min(...prices).toFixed(3));
             const max = Number(Math.max(...prices).toFixed(3));
-            const avg = Number((prices.reduce((a, b) => a + b, 0) / prices.length).toFixed(3));
+            const totalCost = dailyEntries.reduce((sum, entry) => sum + entry.cost, 0);
+            const totalVolume = dailyEntries.reduce((sum, entry) => sum + entry.volume, 0);
+            const avg = Number((totalCost / totalVolume).toFixed(3));
             return { day, min, avg, max };
         });
 
