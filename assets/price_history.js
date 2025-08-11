@@ -34,11 +34,11 @@ async function processTransactions(inputItem) {
     // Group by day
     const dailyData = {};
     transactions.forEach(tx => {
-        const date = new Date(tx.timestamp);
+        const date = new Date(tx.createdAt);
         const dayKey = date.toISOString().split("T")[0];
 
         if (!dailyData[dayKey]) dailyData[dayKey] = [];
-        dailyData[dayKey].push(tx.price);
+        dailyData[dayKey].push(tx.money);
     });
 
     // Convert to array sorted by date
