@@ -38,7 +38,7 @@ async function processTransactions(inputItem) {
         const dayKey = date.toISOString().split("T")[0];
 
         if (!dailyData[dayKey]) dailyData[dayKey] = [];
-        dailyData[dayKey].push(tx.money);
+        dailyData[dayKey].push(tx.money/tx.quantity);
     });
 
     // Convert to array sorted by date
