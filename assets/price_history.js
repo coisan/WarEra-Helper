@@ -47,9 +47,9 @@ async function processTransactions(inputItem) {
         .sort()
         .map(day => {
             const prices = dailyData[day];
-            const min = Math.min(...prices);
-            const max = Math.max(...prices);
-            const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+            const min = Number(Math.min(...prices).toFixed(3));
+            const max = Number(Math.max(...prices).toFixed(3));
+            const avg = Number((prices.reduce((a, b) => a + b, 0) / prices.length).toFixed(3));
             return { day, min, avg, max };
         });
 
