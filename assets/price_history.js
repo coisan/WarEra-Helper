@@ -65,35 +65,28 @@ function renderChart(data) {
         data: {
             labels: data.map(d => d.day),
             datasets: [
-                        {
-                          label: 'Min-Max Range',
-                          type: 'bar',
-                          data: barData,
-                          backgroundColor: 'rgba(0, 123, 255, 0.5)',
-                          order: 1
-                        },
-                        {
-                          label: 'Average Price',
-                          type: 'line',
-                          data: avgData,
-                          borderColor: 'red',
-                          fill: false,
-                          order: 2  // higher order = drawn later = on top
-                        }
-                      ]
+                {
+                    label: 'Min-Max Range',
+                    type: 'bar',
+                    data: barData,
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)', // blueish translucent bar
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'Average Price',
+                    type: 'line',
+                    data: avgData,
+                    borderColor: 'red',
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
         },
         options: {
             responsive: true,
             plugins: {
-                      tooltip: {
-                                callbacks: {
-                                  label: context => {
-                                    const val = context.parsed.y;
-                                    return context.dataset.label + ': ' + val.toFixed(3);
-                                  }
-                                }
-                              },
-                      legend: { position: "top" }
+                legend: { position: "top" }
             },
             scales: {
                 x: {
