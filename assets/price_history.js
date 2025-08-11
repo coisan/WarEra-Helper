@@ -56,29 +56,32 @@ async function processTransactions(inputItem) {
 }
 
 function renderChart(data) {
+  
     const ctx = document.getElementById("priceHistoryChart").getContext("2d");
+    const barData = data.map(d => [d.min, d.max]); // floating bars [min, max]
+    const avgData = data.map(d => d.avg);
+    
     new Chart(ctx, {
-        type: "line",
         data: {
             labels: data.map(d => d.day),
             datasets: [
                 {
-                    label: "Min Price",
-                    data: data.map(d => d.min),
-                    borderColor: "red",
-                    fill: false
+                    label: 'Min-Max Range',
+                    type: 'bar',
+                    data: barData,
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)', // blueish translucent bar
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1,
+                    // Floating bars require these options:
+                    // (Chart.js automatically detects array [min,max])
                 },
                 {
-                    label: "Average Price",
-                    data: data.map(d => d.avg),
-                    borderColor: "blue",
-                    fill: false
-                },
-                {
-                    label: "Max Price",
-                    data: data.map(d => d.max),
-                    borderColor: "green",
-                    fill: false
+                    label: 'Average Price',
+                    type: 'line',
+                    data: avgData,
+                    borderColor: 'red',
+                    fill: false,
+                    tension: 0.3
                 }
             ]
         },
@@ -88,8 +91,15 @@ function renderChart(data) {
                 legend: { position: "top" }
             },
             scales: {
-                x: { title: { display: true, text: "Date" } },
-                y: { title: { display: true, text: "Price" } }
+                x: {
+                    title: { display: true, text: "Date" },
+                    stacked: false
+                },
+                y: {
+                    title: { display: true, text: "Price" },
+                    stacked: false,
+                    beginAtZero: false
+                }
             }
         }
     });
