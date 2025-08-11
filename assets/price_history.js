@@ -44,7 +44,6 @@ async function processTransactions(inputItem) {
     // Convert to array sorted by date
     const result = Object.keys(dailyData)
         .sort()
-        .slice(-7) // last 7 days
         .map(day => {
             const prices = dailyData[day];
             const min = Math.min(...prices);
@@ -56,7 +55,7 @@ async function processTransactions(inputItem) {
     return result;
 }
 
-function renderChart(data) {
+async function renderChart(data) {
     const ctx = document.getElementById("priceHistoryChart").getContext("2d");
     new Chart(ctx, {
         type: "line",
