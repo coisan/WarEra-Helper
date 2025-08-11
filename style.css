@@ -160,6 +160,7 @@ select {
 .container canvas {
   max-width: 1500px;
   width: 100%;
-  aspect-ratio: 16 / 9; /* Width is twice the height */
+  max-height: 843px;
+  /* aspect-ratio: 16 / 9; */
   display: block;
 }
