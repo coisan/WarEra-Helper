@@ -49,8 +49,8 @@ async function processTransactions(inputItem) {
             const prices = dailyData[day].map(p => p.price);
             const min = Number(Math.min(...prices).toFixed(3));
             const max = Number(Math.max(...prices).toFixed(3));
-            const totalCost = dailyEntries.reduce((sum, entry) => sum + entry.cost, 0);
-            const totalVolume = dailyEntries.reduce((sum, entry) => sum + entry.volume, 0);
+            const totalCost = dailyData[day].reduce((sum, entry) => sum + entry.cost, 0);
+            const totalVolume = dailyData[day].reduce((sum, entry) => sum + entry.volume, 0);
             const avg = Number((totalCost / totalVolume).toFixed(3));
             return { day, min, avg, max };
         });
