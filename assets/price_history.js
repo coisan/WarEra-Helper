@@ -27,13 +27,11 @@ async function fetchAllTransactions(itemCode) {
   return transactions;
 }
 
-function getLast7DaysData(transactions, selectedItem) {
-    // Filter only the selected item
-    const itemTxs = transactions.filter(tx => tx.itemName === selectedItem);
+function processTransactions(transactions) {
 
     // Group by day
     const dailyData = {};
-    itemTxs.forEach(tx => {
+    transactions.forEach(tx => {
         const date = new Date(tx.timestamp);
         const dayKey = date.toISOString().split("T")[0];
 
@@ -101,7 +99,7 @@ async function init() {
     // Populate dropdown
     const select = document.getElementById("itemSelect");
     itemDisplayOrder.forEach(item => {
-        const opt = document.createElement("option");
+        let opt = document.createElement("option");
         opt.value = item.id;
         opt.textContent = item.label;
         select.appendChild(opt);
@@ -109,8 +107,9 @@ async function init() {
 
     // On change
     select.addEventListener("change", () => {
-        const selectedItem = select.value;
-        chartData = getLast7DaysData(transactions, selectedItem);
+        let selectedItem = select.value;
+        let transactions = fetchAllTransactions(itemCode);
+        let chartData = processTransactions(transactions);
         document.getElementById("priceHistoryChart").remove();
         const canvas = document.createElement("canvas");
         canvas.id = "priceHistoryChart";
