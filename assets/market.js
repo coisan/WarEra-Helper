@@ -63,36 +63,37 @@ function createTableRow(cells) {
   return tr;
 }
 
-function createPriceRangeBar(min, avg, max, marketAvg) {
-  if (min === null || avg === null || max === null) return "-";
-
-  min = parseFloat(min);
-  avg = parseFloat(avg);
-  max = parseFloat(max);
-
-  const range = max - min || 1;
-  const avgPos = ((avg - min) / range) * 100;
-
-  // Trend indicator
-  let trendHTML = "";
-  if (marketAvg !== null) {
-    if (marketAvg > avg) {
-      trendHTML = ` <span class="positive" title="Prețul actual ${formatNumber(marketAvg)} este mai mare decât media din ultimele 24h">▲</span>`;
-    } else if (marketAvg < avg) {
-      trendHTML = ` <span class="negative" title="Prețul actual ${formatNumber(marketAvg)} este mai mic decât media din ultimele 24h">▼</span>`;
+function createPriceRangeBar(minValue, avgValue, maxValue, trend) {
+    if (minValue === null || avgValue === null || maxValue === null) {
+        return '';
     }
-  }
 
-  return `
-    <div style="position: relative; height: 24px; background: #ddd; border-radius: 4px; padding: 2px;">
-      <div style="position: absolute; left: 0; font-size: 10px;">${formatNumber(min)}</div>
-      <div style="position: absolute; right: 0; font-size: 10px;">${formatNumber(max)}</div>
-      <div style="position: absolute; left: ${avgPos}%; transform: translateX(-50%); top: -8px; font-size: 10px; color: #333;">
-        ${formatNumber(avg)}${trendHTML}
-      </div>
-      <div style="position: absolute; left: ${avgPos}%; transform: translateX(-50%); width: 4px; height: 100%; background: #ff4d4d;"></div>
-    </div>
-  `;
+    const range = maxValue - minValue;
+    const avgPos = range > 0 ? ((avgValue - minValue) / range) * 100 : 50;
+
+    let trendSymbol = '';
+    let trendClass = '';
+    if (trend > 0) {
+        trendSymbol = '▲';
+        trendClass = 'positive';
+    } else if (trend < 0) {
+        trendSymbol = '▼';
+        trendClass = 'negative';
+    } else {
+        trendSymbol = '■';
+        trendClass = 'neutral';
+    }
+
+    return `
+        <div class="price-bar-container" style="display:flex; align-items:center; gap:6px;">
+            <div class="price-bar">
+                <div class="price-bar-min" title="Min: ${minValue.toFixed(2)}"></div>
+                <div class="price-bar-avg" style="left:${avgPos}%;" title="Avg: ${avgValue.toFixed(2)}"></div>
+                <div class="price-bar-max" title="Max: ${maxValue.toFixed(2)}"></div>
+            </div>
+            <span class="${trendClass}">${trendSymbol}</span>
+        </div>
+    `;
 }
 
 async function buildMarketTable() {
