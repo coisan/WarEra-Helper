@@ -57,6 +57,7 @@ async function processTransactions(inputItem) {
 
 async function renderChart(data) {
     const ctx = document.getElementById("priceHistoryChart").getContext("2d");
+    console.log(data);
     new Chart(ctx, {
         type: "line",
         data: {
