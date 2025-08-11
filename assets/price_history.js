@@ -57,11 +57,11 @@ async function processTransactions(inputItem) {
 
 function renderChart(data) {
   
-    const ctx = document.getElementById("priceHistoryChart").getContext("2d");
+    const canvas = document.getElementById("priceHistoryChart");
     const barData = data.map(d => [d.min, d.max]); // floating bars [min, max]
     const avgData = data.map(d => d.avg);
     
-    new Chart(ctx, {
+    new Chart(canvas, {
         data: {
             labels: data.map(d => d.day),
             datasets: [
