@@ -108,7 +108,7 @@ async function init() {
     // On change
     select.addEventListener("change", () => {
         let selectedItem = select.value;
-        let transactions = fetchAllTransactions(selectedItem);
+        let transactions = await fetchAllTransactions(selectedItem);
         let chartData = processTransactions(transactions);
         document.getElementById("priceHistoryChart").remove();
         const canvas = document.createElement("canvas");
