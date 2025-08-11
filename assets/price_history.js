@@ -83,6 +83,7 @@ function renderChart(data) {
                     backgroundColor: 'rgba(0, 123, 255, 0.5)',
                     borderColor: 'rgba(0, 123, 255, 1)',
                     borderWidth: 1,
+                    order: 1
                 },
                 {
                     label: 'Average Price',
@@ -90,7 +91,8 @@ function renderChart(data) {
                     data: avgData,
                     borderColor: 'red',
                     fill: false,
-                    tension: 0.3
+                    tension: 0.3,
+                    order: 0
                 }
             ]
         },
