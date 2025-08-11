@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Item Price History</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="navbar" style="margin-bottom: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 1rem;">
+    <button id="nav-calc" onclick="location.href='production_profit.html'">Calculator profitabilitate</button>
+    <button id="nav-stats" onclick="location.href='war_stats.html'">Statistici război țări</button>
+    <button id="nav-market" onclick="location.href='market.html'">Statistici market</button>
+    <button id="nav-prices" onclick="location.href='price_history.html'">Istoric prețuri</button>
+    <button id="nav-premium" onclick="location.href='premium.html'">Informații premium</button>
+    <button id="nav-country" onclick="location.href='country_players.html'">Jucători țară</button>
+  </nav>
+  
+  <div style="display: inline-flex; align-items: flex-start;">
+    <label for="itemSelect" style="margin-right: 0.5rem;">Selectează un item:</label>
+    <select id="itemSelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
+  </div>
+  
+  <div class="container">  
+      <canvas id="priceHistoryChart" style="max-width: 800px; margin-top: 20px;"></canvas>
+  </div>
+  
+  <script type="module" src="assets/config.js"></script>
+  <script type="module" src="assets/price_history.js"></script>
+</body>
+</html>
