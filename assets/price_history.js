@@ -1,5 +1,6 @@
-import {itemDisplayOrder} from './config.js';
+import {itemDisplayOrder, makeTableSortable} from './config.js';
 let priceHistoryChartInstance = null;
+const priceTableBody = document.querySelector("#priceTable tbody");
 
 async function fetchAllTransactions(itemCode) {
   const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
@@ -72,7 +73,7 @@ function renderChart(data) {
             labels: data.map(d => d.day),
             datasets: [
                 {
-                    label: 'Preț Min-Max',
+                    label: 'Interval preț',
                     type: 'bar',
                     data: barData,
                     backgroundColor: 'rgba(0, 123, 255, 0.5)',
@@ -109,6 +110,20 @@ function renderChart(data) {
     });
 }
 
+function populateTable(data) {
+  
+  priceTableBody.innerHTML = data.map(d => `
+    <tr>
+      <td>${d.day}</td>
+      <td>${d.min}</td>
+      <td>${d.avg}</td>
+      <td>${d.max}</td>
+    </tr>
+  `).join("");
+
+  makeTableSortable("priceTable");
+}
+
 async function init() {
 
     // Populate dropdown
@@ -125,9 +140,11 @@ async function init() {
         if (priceHistoryChartInstance) {
             priceHistoryChartInstance.destroy();
         }
+        priceTableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
         const selectedItem = select.value;
         const chartData = await processTransactions(selectedItem);
         renderChart(chartData);
+        populateTable(chartData);
     });
 }
 
