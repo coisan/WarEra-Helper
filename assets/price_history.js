@@ -103,7 +103,7 @@ async function init() {
     itemDisplayOrder.forEach(item => {
         const opt = document.createElement("option");
         opt.value = item.id;
-        opt.textContent = label;
+        opt.textContent = item.label;
         select.appendChild(opt);
     });
 
