@@ -156,3 +156,10 @@ select {
   appearance: none;
   cursor: pointer;
 }
+
+.container canvas {
+  max-width: 1500px;
+  width: 100%;
+  aspect-ratio: 2 / 1; /* Width is twice the height */
+  display: block;
+}
