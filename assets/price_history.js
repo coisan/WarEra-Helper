@@ -39,7 +39,7 @@ async function processTransactions(inputItem) {
         //const dayKey = date.toISOString().split("T")[0];
         const dayPart = date.toISOString().split("T")[0];
         const hourPart = date.getUTCHours().toString().padStart(2, '0');
-        const hourKey = `${dayPart}T${hourPart}:00:00Z`;
+        const hourKey = `${dayPart} ${hourPart}:00`;
 
         if (!dailyData[hourKey]) dailyData[hourKey] = [];
         dailyData[hourKey].push({price: tx.money/tx.quantity, cost: tx.money, volume: tx.quantity});
