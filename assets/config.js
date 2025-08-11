@@ -238,6 +238,7 @@ const navMap = {
   'production_profit.html': 'nav-calc',
   'war_stats.html': 'nav-stats',
   'market.html': 'nav-market',
+  'price_history.html': 'nav-prices',
   'premium.html': 'nav-premium',
   'country_players.html': 'nav-country'
 };
