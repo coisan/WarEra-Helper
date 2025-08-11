@@ -109,7 +109,7 @@ async function init() {
 
     // On change
     select.addEventListener("change", () => {
-        selectedItem = select.value;
+        const selectedItem = select.value;
         chartData = getLast7DaysData(transactions, selectedItem);
         document.getElementById("priceHistoryChart").remove();
         const canvas = document.createElement("canvas");
