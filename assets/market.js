@@ -1,4 +1,4 @@
-import { itemDisplayOrder, makeTableSortable } from './config.js';
+import {itemDisplayOrder, makeTableSortable} from './config.js';
 
 async function fetchMarketOrders(itemCode) {
   const res = await fetch(`https://api2.warera.io/trpc/tradingOrder.getTopOrders?input=` + encodeURIComponent(JSON.stringify({ itemCode, limit: 10 })));
@@ -63,39 +63,6 @@ function createTableRow(cells) {
   return tr;
 }
 
-function createPriceRangeBar(minValue, avgValue, maxValue, trend) {
-    if (minValue === null || avgValue === null || maxValue === null) {
-        return '';
-    }
-
-    const range = maxValue - minValue;
-    const avgPos = range > 0 ? ((avgValue - minValue) / range) * 100 : 50;
-
-    let trendSymbol = '';
-    let trendClass = '';
-    if (trend > 0) {
-        trendSymbol = '▲';
-        trendClass = 'positive';
-    } else if (trend < 0) {
-        trendSymbol = '▼';
-        trendClass = 'negative';
-    } else {
-        trendSymbol = '■';
-        trendClass = 'neutral';
-    }
-
-    return `
-        <div class="price-bar-container" style="display:flex; align-items:center; gap:6px;">
-            <div class="price-bar">
-                <div class="price-bar-min" title="Min: ${minValue.toFixed(2)}"></div>
-                <div class="price-bar-avg" style="left:${avgPos}%;" title="Avg: ${avgValue.toFixed(2)}"></div>
-                <div class="price-bar-max" title="Max: ${maxValue.toFixed(2)}"></div>
-            </div>
-            <span class="${trendClass}">${trendSymbol}</span>
-        </div>
-    `;
-}
-
 async function buildMarketTable() {
   const table = document.getElementById("marketTable");
   const tbody = table.querySelector("tbody");
@@ -106,18 +73,33 @@ async function buildMarketTable() {
   const loadingDiv = document.getElementById("loadingMessage");
   loadingDiv.style.display = "block";
   try {
-    for (const { id, label, class: colorClass } of itemDisplayOrder) {
+    for (const {
+        id,
+        label,
+        class: colorClass
+      } of itemDisplayOrder) {
       const { bid, ask, spread } = await fetchMarketOrders(id);
       const txs = await fetchAllTransactions(id);
-
-      const prices = txs.map(tx => tx.money / tx.quantity).filter(p => !isNaN(p));
-      const minPrice = prices.length ? Math.min(...prices) : null;
-      const maxPrice = prices.length ? Math.max(...prices) : null;
+  
       const volumeBTC = txs.reduce((sum, tx) => sum + tx.money, 0);
       const volumeUnits = txs.reduce((sum, tx) => sum + tx.quantity, 0);
-      const avgPrice = volumeUnits > 0 ? (volumeBTC / volumeUnits) : null;
+      const averagePrice = volumeUnits > 0
+        ? (volumeBTC / volumeUnits)
+        : null;
 
-      const marketAvg = (bid !== null && ask !== null) ? (bid + ask) / 2 : null;
+      const marketAveragePrice = (bid !== null && ask !== null)
+        ? (bid + ask) / 2
+        : null;
+
+      // Add trend indicator
+      let trendHTML = "";
+      if (averagePrice !== null && marketAveragePrice !== null) {
+        if (marketAveragePrice > averagePrice) {
+          trendHTML = ` <span class="positive" title="Prețul actual ${formatNumber(marketAveragePrice)} este mai mare decât media din ultimele 24h">▲</span>`;
+        } else if (marketAveragePrice < averagePrice) {
+          trendHTML = ` <span class="negative" title="Prețul actual ${formatNumber(marketAveragePrice)} este mai mic decât media din ultimele 24h">▼</span>`;
+        }
+      }
 
       const row = createTableRow([
         `<span class="${colorClass}"><b>${label}</b></span>`,
@@ -126,7 +108,7 @@ async function buildMarketTable() {
         spread,
         volumeUnits.toLocaleString(),
         Math.round(volumeBTC).toLocaleString(),
-        createPriceRangeBar(minPrice, avgPrice, maxPrice, marketAvg)
+        `${formatNumber(averagePrice)}${trendHTML}`
       ]);
       tbody.appendChild(row);
     }
@@ -134,7 +116,7 @@ async function buildMarketTable() {
   finally {
     loadingDiv.style.display = "none";
   }
-
+    
   table.style.display = "table";
 }
 
