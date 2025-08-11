@@ -1,4 +1,5 @@
 import {itemDisplayOrder} from './config.js';
+let priceHistoryChartInstance = null;
 
 async function fetchAllTransactions(itemCode) {
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -56,12 +57,17 @@ async function processTransactions(inputItem) {
 }
 
 function renderChart(data) {
-  
     const canvas = document.getElementById("priceHistoryChart");
-    const barData = data.map(d => [d.min, d.max]); // floating bars [min, max]
+
+    // Destroy previous chart if exists
+    if (priceHistoryChartInstance) {
+        priceHistoryChartInstance.destroy();
+    }
+
+    const barData = data.map(d => [d.min, d.max]);
     const avgData = data.map(d => d.avg);
-    
-    new Chart(canvas, {
+
+    priceHistoryChartInstance = new Chart(canvas, {
         data: {
             labels: data.map(d => d.day),
             datasets: [
@@ -69,7 +75,7 @@ function renderChart(data) {
                     label: 'Min-Max Range',
                     type: 'bar',
                     data: barData,
-                    backgroundColor: 'rgba(0, 123, 255, 0.5)', // blueish translucent bar
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)',
                     borderColor: 'rgba(0, 123, 255, 1)',
                     borderWidth: 1,
                 },
@@ -117,8 +123,6 @@ async function init() {
     // On change
     select.addEventListener("change", async () => {
         const selectedItem = select.value;
-        const canvas = document.getElementById("priceHistoryChart");
-        canvas.remove();
         const chartData = await processTransactions(selectedItem);
         renderChart(chartData);
     });
