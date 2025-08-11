@@ -117,11 +117,9 @@ async function init() {
     // On change
     select.addEventListener("change", async () => {
         const selectedItem = select.value;
+        const canvas = document.getElementById("priceHistoryChart");
+        canvas.remove();
         const chartData = await processTransactions(selectedItem);
-        document.getElementById("priceHistoryChart").remove();
-        const canvas = document.createElement("canvas");
-        canvas.id = "priceHistoryChart";
-        select.parentNode.appendChild(canvas);
         renderChart(chartData);
     });
 }
