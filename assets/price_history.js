@@ -65,30 +65,35 @@ function renderChart(data) {
         data: {
             labels: data.map(d => d.day),
             datasets: [
-                {
-                    label: 'Min-Max Range',
-                    type: 'bar',
-                    data: barData,
-                    backgroundColor: 'rgba(0, 123, 255, 0.5)', // blueish translucent bar
-                    borderColor: 'rgba(0, 123, 255, 1)',
-                    borderWidth: 1,
-                    // Floating bars require these options:
-                    // (Chart.js automatically detects array [min,max])
-                },
-                {
-                    label: 'Average Price',
-                    type: 'line',
-                    data: avgData,
-                    borderColor: 'red',
-                    fill: false,
-                    tension: 0.3
-                }
-            ]
+                        {
+                          label: 'Min-Max Range',
+                          type: 'bar',
+                          data: barData,
+                          backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                          order: 1
+                        },
+                        {
+                          label: 'Average Price',
+                          type: 'line',
+                          data: avgData,
+                          borderColor: 'red',
+                          fill: false,
+                          order: 2  // higher order = drawn later = on top
+                        }
+                      ]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { position: "top" }
+                      tooltip: {
+                                callbacks: {
+                                  label: context => {
+                                    const val = context.parsed.y;
+                                    return context.dataset.label + ': ' + val.toFixed(3);
+                                  }
+                                }
+                              },
+                      legend: { position: "top" }
             },
             scales: {
                 x: {
