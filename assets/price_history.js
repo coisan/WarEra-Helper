@@ -1,3 +1,7 @@
+import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+Chart.register(ChartDataLabels);
+
 import {itemDisplayOrder} from './config.js';
 let priceHistoryChartInstance = null;
 
