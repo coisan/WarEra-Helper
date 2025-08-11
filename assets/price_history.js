@@ -37,10 +37,13 @@ async function processTransactions(inputItem) {
     const dailyData = {};
     transactions.forEach(tx => {
         const date = new Date(tx.createdAt);
-        //const dayKey = date.toISOString().split("T")[0];
-        const dayPart = date.toISOString().split("T")[0];
-        const hourPart = date.getUTCHours().toString().padStart(2, '0');
-        const hourKey = `${dayPart} ${hourPart}:00`;
+        // Local date in YYYY-MM-DD
+        const localDayPart = date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0');
+        // Local hour
+        const hourPart = String(date.getHours()).padStart(2, '0');
+        const hourKey = `${localDayPart} ${hourPart}:00`;
 
         if (!dailyData[hourKey]) dailyData[hourKey] = [];
         dailyData[hourKey].push({price: tx.money/tx.quantity, cost: tx.money, volume: tx.quantity});
