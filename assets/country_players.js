@@ -84,7 +84,7 @@ async function loadUsersByCountry(countryId) {
       const name = userLite.username;
       const level = userLite.leveling.level;
       const fight = sumSkillPoints(userLite.skills, FIGHT_SKILLS);
-      const damage = userLite.rankings.weeklyUserDamages.value;
+      const damage = userLite.rankings.weeklyUserDamages?.value ?? 0;
       const economy = sumSkillPoints(userLite.skills, ECONOMY_SKILLS);
       const wealth = userLite.rankings.userWealth.value;
       const total = fight + economy;
