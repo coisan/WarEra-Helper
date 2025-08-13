@@ -59,7 +59,7 @@ async function loadCountries() {
 }
 
 async function loadUsersByCountry(countryId) {
-  usersTableBody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+  usersTableBody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
   const users = [];
   let cursor = undefined;
 
@@ -84,13 +84,15 @@ async function loadUsersByCountry(countryId) {
       const name = userLite.username;
       const level = userLite.leveling.level;
       const fight = sumSkillPoints(userLite.skills, FIGHT_SKILLS);
+      const damage = userLite.rankings.weeklyUserDamages.value;
       const economy = sumSkillPoints(userLite.skills, ECONOMY_SKILLS);
+      const wealth = userLite.rankings.userWealth.value;
       const total = fight + economy;
       const fightRatio = total > 0 ? (fight / total * 100).toFixed(0) + "%" : "0%";
       const economyRatio = total > 0 ? (economy / total * 100).toFixed(0) + "%" : "0%";
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
 
-      users.push({ name, level, fightRatio, economyRatio, reset });
+      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset });
     }
 
     cursor = data.result?.data?.nextCursor;
@@ -102,7 +104,9 @@ async function loadUsersByCountry(countryId) {
       <td>${u.name}</td>
       <td>${u.level}</td>
       <td>${u.fightRatio}</td>
+      <td>${u.damage}</td>
       <td>${u.economyRatio}</td>
+      <td>${u.wealth}</td>
       <td>${u.reset}</td>
     </tr>
   `).join("");
