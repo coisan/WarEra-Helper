@@ -80,7 +80,7 @@ async function buildStats(selectedCountryId) {
   const countDisplay = document.getElementById("battleCount");
   countDisplay.style.display = "none";
   const tbody = document.querySelector("#battleTable tbody");
-  tbody.innerHTML "<tr><td colspan='6'>Loading...</td></tr>";
+  tbody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
 
   try {
     const battles = await fetchBattles();
