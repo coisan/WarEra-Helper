@@ -79,6 +79,8 @@ async function buildStats(selectedCountryId) {
   
   const countDisplay = document.getElementById("battleCount");
   countDisplay.style.display = "none";
+  const tbody = document.querySelector("#battleTable tbody");
+  tbody.innerHTML = "";
   const loadingDiv = document.getElementById("loadingMessage");
   loadingDiv.style.display = "block";
 
@@ -190,7 +192,6 @@ function populateTable() {
   if (!countryId || !statsByCountry.has(countryId)) return;
 
   const tbody = document.querySelector("#battleTable tbody");
-  tbody.innerHTML = "";
 
   const { damageDat, damageAliati, damagePrimit } = statsByCountry.get(countryId);
 
