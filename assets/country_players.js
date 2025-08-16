@@ -60,6 +60,11 @@ async function loadCountries() {
 
 async function loadUsersByCountry(countryId) {
   usersTableBody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+  const loadingDiv = document.getElementById("loadingMessage");
+  loadingDiv.style.display = "block";
+  const countDisplay = document.getElementById("playerCount");
+  countDisplay.style.display = "block";
+  
   const users = [];
   let cursor = undefined;
   let fightCnt = 0, hybridCnt = 0, economyCnt = 0;
@@ -105,7 +110,8 @@ async function loadUsersByCountry(countryId) {
     if (!cursor) break;
   }
 
-  const countDisplay = document.getElementById("playerCount");
+  loadingDiv.style.display = "none";
+  countDisplay.style.display = "none";
   countDisplay.textContent = `Fight builds (70%+): ${fightCnt}\nHybrid builds: ${hybridCnt}\nEconomy builds (70%+): ${economyCnt}`;
   
   usersTableBody.innerHTML = users.map(u => `
