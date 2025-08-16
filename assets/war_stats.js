@@ -78,7 +78,7 @@ async function buildStats(selectedCountryId) {
   statsByCountry.clear();
   
   const countDisplay = document.getElementById("battleCount");
-  countDisplay.style.display = "block";
+  countDisplay.style.display = "none";
   const loadingDiv = document.getElementById("loadingMessage");
   loadingDiv.style.display = "block";
 
@@ -155,7 +155,7 @@ async function buildStats(selectedCountryId) {
   }
   finally {
     loadingDiv.style.display = "none";
-    countDisplay.style.display = "none";
+    countDisplay.style.display = "block";
   }
   
   populateTable();
