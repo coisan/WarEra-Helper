@@ -62,7 +62,7 @@ async function loadUsersByCountry(countryId) {
   usersTableBody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
   const users = [];
   let cursor = undefined;
-  let fightCnt, hybridCnt, economyCnt = 0;
+  let fightCnt = 0, hybridCnt = 0, economyCnt = 0;
 
   while (true) {
     const input = {
