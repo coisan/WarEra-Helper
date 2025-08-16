@@ -60,8 +60,6 @@ async function loadCountries() {
 
 async function loadUsersByCountry(countryId) {
   usersTableBody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
-  const loadingDiv = document.getElementById("loadingMessage");
-  loadingDiv.style.display = "block";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
@@ -110,7 +108,6 @@ async function loadUsersByCountry(countryId) {
     if (!cursor) break;
   }
 
-  loadingDiv.style.display = "none";
   countDisplay.style.display = "block";
   countDisplay.textContent = `Fight builds (70%+): ${fightCnt}\nHybrid builds: ${hybridCnt}\nEconomy builds (70%+): ${economyCnt}`;
   
