@@ -76,7 +76,9 @@ async function fetchCountryName(id) {
 
 async function buildStats(selectedCountryId) {
   statsByCountry.clear();
-
+  
+  const countDisplay = document.getElementById("battleCount");
+  countDisplay.style.display = "block";
   const loadingDiv = document.getElementById("loadingMessage");
   loadingDiv.style.display = "block";
 
@@ -153,6 +155,7 @@ async function buildStats(selectedCountryId) {
   }
   finally {
     loadingDiv.style.display = "none";
+    countDisplay.style.display = "none";
   }
   
   populateTable();
