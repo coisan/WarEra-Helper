@@ -62,6 +62,7 @@ async function loadUsersByCountry(countryId) {
   usersTableBody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
   const users = [];
   let cursor = undefined;
+  let fightCnt, hybridCnt, economyCnt;
 
   while (true) {
     const input = {
@@ -90,6 +91,11 @@ async function loadUsersByCountry(countryId) {
       const total = fight + economy;
       const fightRatio = total > 0 ? (fight / total * 100).toFixed(0) + "%" : "0%";
       const economyRatio = total > 0 ? (economy / total * 100).toFixed(0) + "%" : "0%";
+      if (level >= 3) {
+        if (fightRatio > 70) fightCnt += 1;
+        else if (economyRatio > 70) economyCnt += 1;
+        else hybridCnt += 1;
+      }
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
 
       users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset });
@@ -98,6 +104,9 @@ async function loadUsersByCountry(countryId) {
     cursor = data.result?.data?.nextCursor;
     if (!cursor) break;
   }
+
+  const countDisplay = document.getElementById("playerCount");
+  countDisplay.textContent = `Fight builds (70%+): ${fightCnt}\nHybrid builds: ${hybridCnt}\nEconomy builds (70%+): ${economyCnt}`;
   
   usersTableBody.innerHTML = users.map(u => `
     <tr>
