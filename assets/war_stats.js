@@ -80,9 +80,7 @@ async function buildStats(selectedCountryId) {
   const countDisplay = document.getElementById("battleCount");
   countDisplay.style.display = "none";
   const tbody = document.querySelector("#battleTable tbody");
-  tbody.innerHTML = "";
-  const loadingDiv = document.getElementById("loadingMessage");
-  loadingDiv.style.display = "block";
+  tbody.innerHTML "<tr><td colspan='6'>Loading...</td></tr>";
 
   try {
     const battles = await fetchBattles();
@@ -156,7 +154,6 @@ async function buildStats(selectedCountryId) {
     });
   }
   finally {
-    loadingDiv.style.display = "none";
     countDisplay.style.display = "block";
   }
   
