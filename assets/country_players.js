@@ -92,8 +92,8 @@ async function loadUsersByCountry(countryId) {
       const fightRatio = total > 0 ? (fight / total * 100).toFixed(0) + "%" : "0%";
       const economyRatio = total > 0 ? (economy / total * 100).toFixed(0) + "%" : "0%";
       if (level >= 3) {
-        if (fightRatio > 70) fightCnt += 1;
-        else if (economyRatio > 70) economyCnt += 1;
+        if (Number(fightRatio.replace('%','')) > 70) fightCnt += 1;
+        else if (Number(economyRatio.replace('%','')) > 70) economyCnt += 1;
         else hybridCnt += 1;
       }
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
