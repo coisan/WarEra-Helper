@@ -163,6 +163,7 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
           <td>${entry.country}</td>
           <td>${entry.money.toFixed(3)}</td>
           <td>${entry.quantity}</td>
+          <td>${(entry.money/entry.quantity).toFixed(3)}</td>
         </tr>`;
       });
     
@@ -170,7 +171,7 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
         <h3>KPI performanță angajați</h3>
         <table>
           <thead>
-            <tr><th>Angajat</th><th>Țară</th><th>Salariu</th><th>Producție</th></tr>
+            <tr><th>Angajat</th><th>Țară</th><th>Salarii</th><th>Producție</th><th>Salariu mediu</th></tr>
           </thead>
           <tbody>${rows.join("")}</tbody>
         </table>
