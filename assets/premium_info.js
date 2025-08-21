@@ -168,20 +168,20 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
       });
     
       return `
-        <h3>KPI performanță angajați</h3>
+        <h3>Employees overview</h3>
         <table>
           <thead>
-            <tr><th>Angajat</th><th>Țară</th><th>Salarii</th><th>Producție</th><th>Salariu mediu</th></tr>
+            <tr><th>Employee</th><th>Country</th><th>Paid</th><th>Produced</th><th>Avg salary</th></tr>
           </thead>
           <tbody>${rows.join("")}</tbody>
         </table>
       `;
     };
 
-    const incomeTable = buildTable(income, "Venituri");
-    const expensesTable = buildTable(expenses, "Cheltuieli");
+    const incomeTable = buildTable(income, "Income");
+    const expensesTable = buildTable(expenses, "Expenses");
     const grandTotal = incomeTable.subtotal - expensesTable.subtotal;
-    const grandTotalHtml = `<p><strong>Balanță venituri - cheltuieli (ultimele 7 zile):</strong> ${grandTotal.toFixed(3)}</p>`;
+    const grandTotalHtml = `<p><strong>Balance (last 7 days):</strong> ${grandTotal.toFixed(3)}</p>`;
     const employeeTable = await buildEmployeeTable(employeeWork);
 
     document.getElementById("premiumStatsOutput").innerHTML =
