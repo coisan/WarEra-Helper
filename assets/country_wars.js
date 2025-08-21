@@ -162,6 +162,7 @@ async function buildStats(selectedCountryId) {
 
 async function populateDropdown() {
   const select = document.getElementById("countrySelect");
+  select.innerHTML = '<option value="">-- Pick one --</option>';
   const countries = await fetchAllCountries();
 
   // Sort countries by rankings.countryActivePopulation.value descending
