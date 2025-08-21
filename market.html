@@ -5,29 +5,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav id="navbar" style="margin-bottom: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 1rem;">
-    <button id="nav-calc" onclick="location.href='production_profit.html'">Calculator profitabilitate</button>
-    <button id="nav-stats" onclick="location.href='war_stats.html'">Statistici război țări</button>
-    <button id="nav-market" onclick="location.href='market.html'">Statistici market</button>
-    <button id="nav-prices" onclick="location.href='price_history.html'">Istoric prețuri</button>
-    <button id="nav-premium" onclick="location.href='premium.html'">Informații premium</button>
-    <button id="nav-country" onclick="location.href='country_players.html'">Jucători țară</button>
-  </nav>
+  <div id="nav-placeholder"></div>
+  <script>
+    fetch('nav.html')
+      .then(response => response.text())
+      .then(data => document.getElementById('nav-placeholder').innerHTML = data);
+  </script>
   
   <div id="loadingMessage" style="display: none; margin-top: 1rem;">
-    Se încarcă datele...
+    Loading data...
   </div>
   
   <table id="marketTable">
     <thead>
       <tr>
-        <th data-column="0" class="sortable">Articol</th>
-        <th data-column="1" class="sortable">Preț Bid</th>
-        <th data-column="2" class="sortable">Preț Ask</th>
+        <th data-column="0" class="sortable">Item</th>
+        <th data-column="1" class="sortable">Bid</th>
+        <th data-column="2" class="sortable">Ask</th>
         <th data-column="3" class="sortable">Spread (%)</th>
-        <th data-column="4" class="sortable">Volum 24h (unități)</th>
-        <th data-column="5" class="sortable">Volum 24h (BTC)</th>
-        <th data-column="6" class="sortable">Preț mediu 24h</th>
+        <th data-column="4" class="sortable">24h volume (units)</th>
+        <th data-column="5" class="sortable">24h volume (BTC)</th>
+        <th data-column="6" class="sortable">24h average price</th>
       </tr>
     </thead>
     <tbody></tbody>
