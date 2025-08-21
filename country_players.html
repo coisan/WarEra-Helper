@@ -6,10 +6,15 @@
 </head>
 <body>
   <div id="nav-placeholder"></div>
+  
   <script>
     fetch('nav.html')
-      .then(response => response.text())
-      .then(data => document.getElementById('nav-placeholder').innerHTML = data);
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('nav-placeholder').innerHTML = html;
+        document.querySelector('#nav-placeholder a[href="country_players.html"]')
+          ?.classList.add('active-nav');
+      });
   </script>
 
   <div style="display: inline-flex; align-items: flex-start;">
