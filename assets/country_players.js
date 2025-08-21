@@ -36,6 +36,7 @@ async function fetchAllCountries() {
 
 async function loadCountries() {
   const select = document.getElementById("countrySelect");
+  select.innerHTML = '<option value="">-- Pick one --</option>';
   const countries = await fetchAllCountries();
 
   // Sort countries by rankings.countryActivePopulation.value descending
