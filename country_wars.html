@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Country War Stats</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+  <script>
+    fetch('nav.html')
+      .then(response => response.text())
+      .then(data => document.getElementById('nav-placeholder').innerHTML = data);
+  </script>
+
+  <div style="display: inline-flex; align-items: flex-start;">
+    <label for="countrySelect" style="margin-right: 0.5rem;">Select a country:</label>
+    <select id="countrySelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
+    <div id="battleCount" style="white-space: pre-line;"></div>
+  </div>
+
+  <table id="battleTable">
+    <thead>
+      <tr>
+        <th>Attacked country</th>
+        <th>Damage given (last 7 days)</th>
+        <th>Allied country</th>
+        <th>Damage from allies (last 7 days)</th>
+        <th>Attacking country</th>
+        <th>Damage received (last 7 days)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module" src="assets/config.js"></script>
+  <script type="module" src="assets/country_wars.js"></script>
+</body>
+</html>
