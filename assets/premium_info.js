@@ -78,7 +78,7 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
       const fullTable = `
         <h3>${title}</h3>
         <table>
-          <thead><tr><th>Tip tranzacție</th><th>Suma</th></tr></thead>
+          <thead><tr><th>Transaction type</th><th>Ammount</th></tr></thead>
           <tbody>${rows}${subtotalRow}</tbody>
         </table>
       `;
