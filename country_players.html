@@ -5,15 +5,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav id="navbar" style="margin-bottom: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 1rem;">
-    <button id="nav-calc" onclick="location.href='production_profit.html'">Production Profit</button>
-    <button id="nav-market" onclick="location.href='market.html'">Market Stats</button>
-    <button id="nav-prices" onclick="location.href='price_history.html'">Item Price History</button>
-    <button id="nav-premium" onclick="location.href='premium.html'">Premium Account Info</button>
-    <button id="nav-countrywars" onclick="location.href='country_wars.html'">Country War Stats</button>
-    <button id="nav-countryplayers" onclick="location.href='country_players.html'">Country Players</button>
-    <button id="nav-countryoverview" onclick="location.href='country_overview.html'">Countries Overview</button>
-  </nav>
+  <div id="nav-placeholder"></div>
+  <script>
+    fetch('nav.html')
+      .then(response => response.text())
+      .then(data => document.getElementById('nav-placeholder').innerHTML = data);
+  </script>
 
   <div style="display: inline-flex; align-items: flex-start;">
     <label for="countrySelect" style="margin-right: 0.5rem;">Select a country:</label>
