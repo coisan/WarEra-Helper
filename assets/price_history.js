@@ -131,6 +131,7 @@ async function init() {
 
     // Populate dropdown
     const select = document.getElementById("itemSelect");
+    select.innerHTML = '<option value="">-- Pick one --</option>';
     itemDisplayOrder.forEach(item => {
         const opt = document.createElement("option");
         opt.value = item.id;
