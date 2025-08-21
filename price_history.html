@@ -5,17 +5,15 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav id="navbar" style="margin-bottom: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 1rem;">
-    <button id="nav-calc" onclick="location.href='production_profit.html'">Calculator profitabilitate</button>
-    <button id="nav-stats" onclick="location.href='war_stats.html'">Statistici război țări</button>
-    <button id="nav-market" onclick="location.href='market.html'">Statistici market</button>
-    <button id="nav-prices" onclick="location.href='price_history.html'">Istoric prețuri</button>
-    <button id="nav-premium" onclick="location.href='premium.html'">Informații premium</button>
-    <button id="nav-country" onclick="location.href='country_players.html'">Jucători țară</button>
-  </nav>
+  <div id="nav-placeholder"></div>
+  <script>
+    fetch('nav.html')
+      .then(response => response.text())
+      .then(data => document.getElementById('nav-placeholder').innerHTML = data);
+  </script>
   
   <div style="display: flex; align-items: flex-start;">
-      <label for="itemSelect" style="margin-right: 0.5rem;">Selectează un item:</label>
+      <label for="itemSelect" style="margin-right: 0.5rem;">Select an item:</label>
       <select id="itemSelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem;"></select>
   </div>
 
@@ -26,10 +24,10 @@
   <table id="priceTable" class="sortable" style="margin-top: 20px;">
     <thead>
       <tr>
-        <th data-column="0" class="sortable">Data</th>
-        <th data-column="1" class="sortable">Preț minim</th>
-        <th data-column="2" class="sortable">Preț mediu</th>
-        <th data-column="3" class="sortable">Preț maxim</th>
+        <th data-column="0" class="sortable">Date</th>
+        <th data-column="1" class="sortable">Min price</th>
+        <th data-column="2" class="sortable">Avg price</th>
+        <th data-column="3" class="sortable">Max price</th>
       </tr>
     </thead>
     <tbody></tbody>
