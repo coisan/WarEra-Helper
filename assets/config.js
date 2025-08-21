@@ -234,13 +234,14 @@ export function makeTableSortable(tableId) {
 }
 
 const navMap = {
-  '/': 'nav-calc',
-  'production_profit.html': 'nav-calc',
-  'war_stats.html': 'nav-stats',
-  'market.html': 'nav-market',
-  'price_history.html': 'nav-prices',
-  'premium.html': 'nav-premium',
-  'country_players.html': 'nav-country'
+    '/': 'nav-prodprofit',
+    'production_profit.html': 'nav-prodprofit',
+    'market_stats.html': 'nav-marketstats',
+    'price_history.html': 'nav-itemprice',
+    'premium_info.html': 'nav-premiuminfo',
+    'country_wars.html': 'nav-countrywars',
+    'country_players.html': 'nav-countryplayers',
+    'country_overview.html': 'nav-countryoverview'
 };
 
 const currentPath = window.location.pathname;
