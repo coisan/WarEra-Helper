@@ -37,7 +37,7 @@ async function buildCountriesTable() {
       const row = createTableRow([
         country.name,
         country.rankings.countryActivePopulation.value,
-        `${country.strategicResources.bonuses.productionPercent}%`,
+        `${country.strategicResources?.bonuses.productionPercent ?? 0}%`,
         `${country.taxes.income}%`,
         `${country.taxes.market}%`,
         formatNumber(country.rankings.countryDevelopment.value),
