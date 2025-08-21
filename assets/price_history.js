@@ -76,7 +76,7 @@ function renderChart(data) {
             labels: data.map(d => d.day),
             datasets: [
                 {
-                    label: 'Interval preț',
+                    label: 'Price interval',
                     type: 'bar',
                     data: barData,
                     backgroundColor: 'rgba(0, 123, 255, 0.5)',
@@ -84,7 +84,7 @@ function renderChart(data) {
                     order: 1
                 },
                 {
-                    label: 'Preț mediu',
+                    label: 'Avg price',
                     type: 'line',
                     data: avgData,
                     borderColor: 'red',
@@ -100,11 +100,11 @@ function renderChart(data) {
             },
             scales: {
                 x: {
-                    title: { display: true, text: "Data" },
+                    title: { display: true, text: "Date" },
                     stacked: false
                 },
                 y: {
-                    title: { display: true, text: "Preț" },
+                    title: { display: true, text: "Price" },
                     stacked: false,
                     beginAtZero: false
                 }
