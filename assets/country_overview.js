@@ -37,14 +37,14 @@ async function buildCountriesTable() {
       const row = createTableRow([
         country.name,
         country.rankings.countryActivePopulation.value,
-        '${country.strategicResources.bonuses.productionPercent}%',
-        '${country.taxes.income}%',
-        '${country.taxes.market}%',
+        `${country.strategicResources.bonuses.productionPercent}%`,
+        `${country.taxes.income}%`,
+        `${country.taxes.market}%`,
         formatNumber(country.rankings.countryDevelopment.value),
         formatNumber(country.rankings.countryWealth.value)
       ]);
       tbody.appendChild(row);
-    };
+    });
   }
   finally {
     loadingDiv.style.display = "none";
