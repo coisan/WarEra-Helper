@@ -123,6 +123,7 @@ function populateTable(data) {
       <td>${d.max}</td>
     </tr>
   `).join("");
+  document.getElementById("priceTable").hidden = false;
 
   makeTableSortable("priceTable");
 }
