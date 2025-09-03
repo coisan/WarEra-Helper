@@ -10,8 +10,8 @@ async function loadPrices() {
 window.calculateAllProfitabilities = function calculateAllProfitabilities() {
   const bonus = parseFloat(document.getElementById('bonusInput').value);
   const salary = parseFloat(document.getElementById('salaryInput').value);
-  if (isNaN(bonus) || isNaN(salary)) {
-    alert ("Te rog introdu bonusul de producție și salariul.");
+  if (isNaN(bonus)) {
+    alert ("Please enter the production bonus");
     return;
   }
 
@@ -43,8 +43,13 @@ window.calculateAllProfitabilities = function calculateAllProfitabilities() {
     const marketCell = document.createElement('td');
     if (Object.keys(recipe.materials).length > 0) {
       const marketProfit = calculateProfitability(id, bonus, salary, 'market');
-      marketCell.textContent = marketProfit !== null ? (marketProfit * 100).toFixed(2) + '%' : '—';
-      marketCell.className = marketProfit > 0 ? 'positive' : 'negative';
+      if (isNaN(salary)) {
+        marketCell.textContent = marketProfit !== null ? marketProfit.toFixed(3) : '—';
+      }
+      else {
+        marketCell.textContent = marketProfit !== null ? (marketProfit * 100).toFixed(2) + '%' : '—';
+        marketCell.className = marketProfit > 0 ? 'positive' : 'negative';
+      }
     } else {
       marketCell.textContent = '—';
     }
@@ -52,8 +57,13 @@ window.calculateAllProfitabilities = function calculateAllProfitabilities() {
 
     const prodProfit = calculateProfitability(id, bonus, salary, 'production');
     const prodCell = document.createElement('td');
-    prodCell.textContent = prodProfit !== null ? (prodProfit * 100).toFixed(2) + '%' : '—';
-    prodCell.className = prodProfit > 0 ? 'positive' : 'negative';
+    if (isNaN(salary)) {
+      prodCell.textContent = prodProfit !== null ? prodProfit.toFixed(3) : '—';
+    }
+    else {
+      prodCell.textContent = prodProfit !== null ? (prodProfit * 100).toFixed(2) + '%' : '—';
+      prodCell.className = prodProfit > 0 ? 'positive' : 'negative';
+    }
     row.appendChild(prodCell);
 
     tbody.appendChild(row);
@@ -67,8 +77,13 @@ function calculateProfitability(item, bonus, salary, source) {
 
   if (Object.keys(recipe.materials).length === 0) {
     const pp = recipe.pp / (1 + bonus / 100);
-    const cost = pp * salary;
-    return (sellPrice - cost) / cost;
+    if (isNaN(salary)) {
+      return sellPrice / pp;
+    }
+    else {
+      const cost = pp * salary;
+      return (sellPrice - cost) / cost;
+    }
   }
 
   if (source === 'market') {
@@ -78,16 +93,26 @@ function calculateProfitability(item, bonus, salary, source) {
       matCost += prices[mat] * qty;
     }
     const pp = recipe.pp / (1 + bonus / 100);
-    const cost = matCost + pp * salary;
-    return (sellPrice - cost) / cost;
+    if (isNaN(salary)) {
+      return (sellPrice - matCost) / pp;
+    }
+    else {
+      const cost = matCost + pp * salary;
+      return (sellPrice - cost) / cost;
+    }
   }
 
   if (source === 'production') {
     const totalPP = calculatePPTotal(item, bonus);
     if (totalPP === null) return null;
     const pp = totalPP / (1 + bonus / 100);
-    const cost = pp * salary;
-    return (sellPrice - cost) / cost;
+    if (isNaN(salary)) {
+      return sellPrice / pp;
+    }
+    else {
+      const cost = pp * salary;
+      return (sellPrice - cost) / cost;
+    }
   }
 
   return null;
