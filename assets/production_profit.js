@@ -68,12 +68,12 @@ window.calculateAllProfitabilities = function calculateAllProfitabilities() {
 
     tbody.appendChild(row);
     if (isNaN(salary)) {
-      document.querySelector("#profitTable thead th:nth-child(2)").textContent = "Value per pp if buying materials";
-      document.querySelector("#profitTable thead th:nth-child(3)").textContent = "Value per pp if producing materials";
+      document.querySelector("#profitTable thead th:nth-child(3)").textContent = "Value per pp if buying materials";
+      document.querySelector("#profitTable thead th:nth-child(4)").textContent = "Value per pp if producing materials";
     }
     else {
-      document.querySelector("#profitTable thead th:nth-child(2)").textContent = "Profit if buying materials";
-      document.querySelector("#profitTable thead th:nth-child(3)").textContent = "Profit if producing materials";
+      document.querySelector("#profitTable thead th:nth-child(3)").textContent = "Profit if buying materials";
+      document.querySelector("#profitTable thead th:nth-child(4)").textContent = "Profit if producing materials";
     }
     document.getElementById("profitTable").hidden = false;
   }
