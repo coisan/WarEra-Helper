@@ -1,7 +1,7 @@
 window.generatePremiumInfo = async function generatePremiumInfo() {
   const userId = document.getElementById("playerIdInput").value.trim();
   if (!userId) {
-    alert("Te rog introdu un ID de jucător valid.");
+    alert("Please enter a valid Player ID");
     return;
   }
 
@@ -25,7 +25,7 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
       const result = await response.json();
 
       if (result.error?.data?.httpStatus === 500) {
-        alert("IDul este invalid sau nu a fost găsit.");
+        alert("Played ID not valid or not found");
         return;
       }
 
