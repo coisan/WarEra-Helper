@@ -24,7 +24,7 @@ async function fetchAllCountries() {
 async function fetchBattles() {
   const allBattles = [];
   let nextCursor = null;
-  const oneWeekAgo = Date.now() - selectedRange * 24 * 60 * 60 * 1000;
+  const startDate = Date.now() - selectedRange.value * 24 * 60 * 60 * 1000;
 
   while (true) {
     const input = {
@@ -41,8 +41,8 @@ async function fetchBattles() {
 
     for (const battle of result.items) {
       const timestamp = new Date(battle.createdAt).getTime();
-      if (timestamp < oneWeekAgo) {
-        return { items: allBattles }; // stop if battle is older than 1 week
+      if (timestamp < startDate) {
+        return { items: allBattles };
       }
       allBattles.push(battle);
     }
