@@ -1,5 +1,6 @@
 const countryMap = new Map();
 const statsByCountry = new Map();
+const selectedRange = document.querySelector('input[name="range_choice"]:checked');
 
 document.getElementById("countrySelect").addEventListener("change", (e) => {
   const selectedId = e.target.value;
@@ -23,7 +24,7 @@ async function fetchAllCountries() {
 async function fetchBattles() {
   const allBattles = [];
   let nextCursor = null;
-  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const oneWeekAgo = Date.now() - selectedRange * 24 * 60 * 60 * 1000;
 
   while (true) {
     const input = {
