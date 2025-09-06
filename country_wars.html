@@ -16,22 +16,24 @@
       });
   </script>
 
-  <div style="display: inline-flex; align-items: flex-start;">
-    <label for="countrySelect" style="margin-right: 0.5rem;">Select a country:</label>
-    <select id="countrySelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
-    <div id="battleCount" style="white-space: pre-line;"></div>
-  </div>
-
-  <div>
-    <label>
-      <input type="radio" name="range_choice" value="1"> 1 day
-    </label>
-    <label>
-      <input type="radio" name="range_choice" value="3" checked> 3 days
-    </label>
-    <label>
-      <input type="radio" name="range_choice" value="7"> 7 days
-    </label>
+  <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1rem;">
+    <div style="display: inline-flex; align-items: flex-start;">
+      <label for="countrySelect" style="margin-right: 0.5rem;">Select a country:</label>
+      <select id="countrySelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
+      <div id="battleCount" style="white-space: pre-line;"></div>
+    </div>
+  
+    <div>
+      <label>
+        <input type="radio" name="range_choice" value="1"> 1 day
+      </label>
+      <label>
+        <input type="radio" name="range_choice" value="3" checked> 3 days
+      </label>
+      <label>
+        <input type="radio" name="range_choice" value="7"> 7 days
+      </label>
+    </div>
   </div>
 
   <table id="battleTable">
