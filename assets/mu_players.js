@@ -86,5 +86,3 @@ window.generateMuInfo = async function generateMuInfo() {
 
   makeTableSortable("usersTable");
 }
-
-loadCountries();
