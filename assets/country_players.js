@@ -109,9 +109,9 @@ async function loadUsersByCountry(countryId) {
         else hybridCnt += 1;
       }
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
-      const mu = userLite.includes(mu) ? fetchMuName(userLite.mu) : "-";
+      const muName = mu in userLite ? fetchMuName(userLite.mu) : "-";
 
-      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, mu });
+      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, muName });
     }
 
     cursor = data.result?.data?.nextCursor;
