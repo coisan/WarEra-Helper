@@ -41,7 +41,7 @@ window.generateMuInfo = async function generateMuInfo() {
     };
   const response = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify(input)));
   const data = await response.json();
-  const fetchedUsers = data.result.data.items;
+  const fetchedUsers = data.result.data.members;
 
   for (const user of fetchedUsers) {
     const input = {
