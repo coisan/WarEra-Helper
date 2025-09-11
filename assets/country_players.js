@@ -109,7 +109,7 @@ async function loadUsersByCountry(countryId) {
         else hybridCnt += 1;
       }
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
-      const muName = userLite.mu ? fetchMuName(userLite.mu) : "-";
+      const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
 
       users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, muName });
     }
