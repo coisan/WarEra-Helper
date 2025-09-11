@@ -5,6 +5,7 @@ const ECONOMY_SKILLS = ["energy", "companies", "entrepreneurship", "production"]
 const countrySelect = document.getElementById("countrySelect");
 const usersTableBody = document.querySelector("#usersTable tbody");
 const countryMap = new Map();
+const muMap = new Map();
 
 import {makeTableSortable} from './config.js';
 
@@ -26,6 +27,15 @@ function timeUntilReset(lastResetAt) {
   const days = Math.floor(msLeft / (24 * 60 * 60 * 1000));
   const hours = Math.floor((msLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
   return `${days}d ${hours}h`;
+}
+
+async function fetchMuName(id) {
+  if (muMap.has(id)) return muMap.get(id);
+  const res = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify({ countryId: id })));
+  const data = await res.json();
+  const name = data.result?.data?.name || id;
+  muMap.set(id, name);
+  return name;
 }
 
 async function fetchAllCountries() {
@@ -58,7 +68,7 @@ async function loadCountries() {
 }
 
 async function loadUsersByCountry(countryId) {
-  usersTableBody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+  usersTableBody.innerHTML = "<tr><td colspan='8'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
@@ -99,8 +109,9 @@ async function loadUsersByCountry(countryId) {
         else hybridCnt += 1;
       }
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
+      const mu = userLite.includes(mu) ? fetchMuName(userLite.mu) : "-";
 
-      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset });
+      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, mu });
     }
 
     cursor = data.result?.data?.nextCursor;
@@ -119,6 +130,7 @@ async function loadUsersByCountry(countryId) {
       <td>${u.economyRatio}</td>
       <td>${u.wealth}</td>
       <td>${u.reset}</td>
+      <td>${u.mu}</td>
     </tr>
   `).join("");
 
