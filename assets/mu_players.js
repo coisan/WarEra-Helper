@@ -62,7 +62,7 @@ window.generateMuInfo = async function generateMuInfo() {
     const userLite = (await res.json()).result.data;
     
     const name = userLite.username;
-    const country = fetchCountryName(userLite.country);
+    const country = await fetchCountryName(userLite.country);
     const level = userLite.leveling.level;
     const fight = sumSkillPoints(userLite.skills, FIGHT_SKILLS);
     const damage = userLite.rankings?.weeklyUserDamages?.value.toLocaleString() ?? 0;
