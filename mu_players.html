@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Military Unit Players</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+  
+  <script>
+    fetch('nav.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('nav-placeholder').innerHTML = html;
+        document.getElementById('nav-countryplayers')
+          ?.classList.add('active-nav');
+      });
+  </script>
+
+  <input id="muIdInput" type="text" placeholder="MU ID">
+  <button onclick="generateMuInfo()">Generate</button>
+  <div id="loadingMessage" style="display: none; margin-top: 1rem;">
+    Loading data...
+  </div>
+
+  <table id="usersTable" class="sortable">
+    <thead>
+      <tr>
+        <th data-column="0" class="sortable">Name</th>
+        <th data-column="1" class="sortable">Level</th>
+        <th data-column="2" class="sortable">Fight %</th>
+        <th data-column="3" class="sortable">Weekly dmg</th>
+        <th data-column="4" class="sortable">Economy %</th>
+        <th data-column="5" class="sortable">Wealth</th>
+        <th data-column="6" class="sortable">Skill Reset</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module" src="assets/config.js"></script>
+  <script type="module" src="assets/mu_players.js"></script>
+</body>
+</html>
