@@ -31,7 +31,7 @@ function timeUntilReset(lastResetAt) {
 
 async function fetchMuName(id) {
   if (muMap.has(id)) return muMap.get(id);
-  const res = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify({ countryId: id })));
+  const res = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify({ muId: id })));
   const data = await res.json();
   const name = data.result?.data?.name || id;
   muMap.set(id, name);
