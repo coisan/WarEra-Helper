@@ -130,7 +130,7 @@ async function loadUsersByCountry(countryId) {
       <td>${u.economyRatio}</td>
       <td>${u.wealth}</td>
       <td>${u.reset}</td>
-      <td>${u.mu}</td>
+      <td>${u.muName}</td>
     </tr>
   `).join("");
 
