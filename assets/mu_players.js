@@ -42,10 +42,11 @@ window.generateMuInfo = async function generateMuInfo() {
   const response = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify(input)));
   const data = await response.json();
   const fetchedUsers = data.result.data.members;
+  const muName = data.result.data.name;
 
   for (const user of fetchedUsers) {
     const input = {
-      userId: user._id
+      userId: user
     };
     const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
     const userLite = (await res.json()).result.data;
@@ -70,7 +71,10 @@ window.generateMuInfo = async function generateMuInfo() {
   }
 
   countDisplay.style.display = "block";
-  countDisplay.textContent = `Fight builds (70%+): ${fightCnt}\nHybrid builds: ${hybridCnt}\nEconomy builds (70%+): ${economyCnt}`;
+  countDisplay.innerHTML = `<b>${muName}</b><br>
+                            Fight builds (70%+): ${fightCnt}<br>
+                            Hybrid builds: ${hybridCnt}<br>
+                            Economy builds (70%+): ${economyCnt}`;
   
   usersTableBody.innerHTML = users.map(u => `
     <tr>
