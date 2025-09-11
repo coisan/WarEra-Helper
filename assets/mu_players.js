@@ -3,6 +3,7 @@ const FIGHT_SKILLS = ["health", "hunger", "attack", "criticalChance", "criticalD
 const ECONOMY_SKILLS = ["energy", "companies", "entrepreneurship", "production"];
 
 const usersTableBody = document.querySelector("#usersTable tbody");
+const countryMap = new Map();
 
 import {makeTableSortable} from './config.js';
 
@@ -26,8 +27,17 @@ function timeUntilReset(lastResetAt) {
   return `${days}d ${hours}h`;
 }
 
+async function fetchCountryName(id) {
+  if (countryMap.has(id)) return countryMap.get(id);
+  const res = await fetch("https://api2.warera.io/trpc/country.getCountryById?input=" + encodeURIComponent(JSON.stringify({ countryId: id })));
+  const data = await res.json();
+  const name = data.result?.data?.name || id;
+  countryMap.set(id, name);
+  return name;
+}
+
 window.generateMuInfo = async function generateMuInfo() {
-  usersTableBody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+  usersTableBody.innerHTML = "<tr><td colspan='8'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
@@ -50,8 +60,9 @@ window.generateMuInfo = async function generateMuInfo() {
     };
     const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
     const userLite = (await res.json()).result.data;
-
+    
     const name = userLite.username;
+    const country = fetchCountryName(userLite.country);
     const level = userLite.leveling.level;
     const fight = sumSkillPoints(userLite.skills, FIGHT_SKILLS);
     const damage = userLite.rankings?.weeklyUserDamages?.value.toLocaleString() ?? 0;
@@ -67,18 +78,19 @@ window.generateMuInfo = async function generateMuInfo() {
     }
     const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
 
-    users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset });
+    users.push({ name, country, level, fightRatio, damage, economyRatio, wealth, reset });
   }
 
   countDisplay.style.display = "block";
-  countDisplay.innerHTML = `<b>${muName}</b><br>
-                            Fight builds (70%+): ${fightCnt}<br>
-                            Hybrid builds: ${hybridCnt}<br>
+  countDisplay.innerHTML = `<br><b>${muName}</b><br>
+                            Fight builds (70%+): ${fightCnt}
+                            Hybrid builds: ${hybridCnt}
                             Economy builds (70%+): ${economyCnt}`;
   
   usersTableBody.innerHTML = users.map(u => `
     <tr>
       <td>${u.name}</td>
+      <td>${u.country}</td>
       <td>${u.level}</td>
       <td>${u.fightRatio}</td>
       <td>${u.damage}</td>
