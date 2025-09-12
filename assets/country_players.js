@@ -6,6 +6,7 @@ const countrySelect = document.getElementById("countrySelect");
 const usersTableBody = document.querySelector("#usersTable tbody");
 const countryMap = new Map();
 const muMap = new Map();
+let playerChartInstance = null;
 
 import {makeTableSortable} from './config.js';
 
@@ -67,12 +68,45 @@ async function loadCountries() {
   });
 }
 
+function renderChart(data) {
+  
+    const canvas = document.getElementById("playerChart");
+    const labels = Object.keys(data).sort((a, b) => a - b);
+    const lvlData = labels.map(lvl => data[level]);
+
+    playerChartInstance = new Chart(document.getElementById("playersPerLevel"), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Players per Level',
+          data: lvlData,
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            title: { display: true, text: "Level" }
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Number of Players" }
+          }
+        }
+      }
+    });
+}
+
 async function loadUsersByCountry(countryId) {
   usersTableBody.innerHTML = "<tr><td colspan='8'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
   const users = [];
+  const levelCounts = {};
   let cursor = undefined;
   let fightCnt = 0, hybridCnt = 0, economyCnt = 0;
 
@@ -110,6 +144,7 @@ async function loadUsersByCountry(countryId) {
       }
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
       const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
+      levelCounts[level] = (levelCounts[level] || 0) + 1;
 
       users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, muName });
     }
@@ -120,7 +155,8 @@ async function loadUsersByCountry(countryId) {
 
   countDisplay.style.display = "block";
   countDisplay.textContent = `Fight builds (70%+): ${fightCnt}\nHybrid builds: ${hybridCnt}\nEconomy builds (70%+): ${economyCnt}`;
-  
+
+  renderChart(levelCounts);
   usersTableBody.innerHTML = users.map(u => `
     <tr>
       <td>${u.name}</td>
@@ -138,6 +174,9 @@ async function loadUsersByCountry(countryId) {
 }
 
 countrySelect.addEventListener("change", () => {
+  if (playerChartInstance) {
+    playerChartInstance.destroy();
+  }
   const countryId = countrySelect.value;
   if (countryId) loadUsersByCountry(countryId);
 });
