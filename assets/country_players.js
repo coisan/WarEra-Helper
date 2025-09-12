@@ -74,7 +74,7 @@ function renderChart(data) {
     const labels = Object.keys(data).sort((a, b) => a - b);
     const lvlData = labels.map(lvl => data[lvl]);
 
-    playerChartInstance = new Chart(document.getElementById("playersPerLevel"), {
+    playerChartInstance = new Chart(canvas, {
       type: 'bar',
       data: {
         labels: labels,
