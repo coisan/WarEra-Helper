@@ -103,7 +103,7 @@ async function buildStats(selectedCountryId) {
     await fetchCountryName(selectedCountryId);
   
     const countDisplay = document.getElementById("battleCount");
-    countDisplay.textContent = `Attacking battles: ${asAttacker}\nDefending battles: ${asDefender}`;
+    countDisplay.innerHTML = `Attacking battles: ${asAttacker}<br>Defending battles: ${asDefender}`;
   
     for (const battle of filteredBattles) {
       const battleId = battle._id;
