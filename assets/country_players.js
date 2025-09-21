@@ -32,7 +32,8 @@ function timeUntilReset(lastResetAt) {
 
 function getTimeDiffString(targetDate) {
   const now = new Date();
-  const diffMs = Math.abs(now - targetDate); // ms difference
+  const target = new Date(targetDate)
+  const diffMs = Math.abs(now - target); // ms difference
 
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
