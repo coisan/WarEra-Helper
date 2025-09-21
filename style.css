@@ -281,7 +281,7 @@ select {
 
 .row-flex {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start; /* aligns tops, not bottom */
   gap: 2rem;
   margin-bottom: 1rem;
 }
@@ -292,9 +292,10 @@ fieldset.radiogroup {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.8em;
-  height: fit-content;
+  gap: 1.2em;
+  height: 100%; /* allow it to grow with contents */
   background: var(--secondary-color, #2a2a2a);
+  min-width: 220px; /* optional: set to at least as wide as the select */
 }
 fieldset.radiogroup legend {
   font-size: 1rem;
@@ -302,7 +303,19 @@ fieldset.radiogroup legend {
   color: var(--text-color, #f0f0f0);
   padding: 0 0.5em;
 }
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: normal; /* not bold */
+  font-size: 1rem;
+  margin: 0;
+}
+.radiogroup input[type="radio"] {
+  accent-color: var(--accent-color, #e53935);
+  margin: 0;
+}
 @media (max-width: 800px) {
   .row-flex { flex-direction: column; align-items: stretch; gap: 1rem; }
-  fieldset.radiogroup { flex-wrap: wrap; }
+  fieldset.radiogroup { flex-wrap: wrap; min-width: 0; }
 }
