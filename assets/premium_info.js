@@ -73,14 +73,15 @@ window.generatePremiumInfo = async function generatePremiumInfo() {
         subtotal += amount;
         return `<tr><td>${type}</td><td>${amount.toFixed(3)}</td></tr>`;
       }).join("");
-
       const subtotalRow = `<tr><td><strong>Total ${title.toLowerCase()}</strong></td><td><strong>${subtotal.toFixed(3)}</strong></td></tr>`;
       const fullTable = `
         <h3>${title}</h3>
-        <table>
-          <thead><tr><th>Transaction type</th><th>Ammount</th></tr></thead>
-          <tbody>${rows}${subtotalRow}</tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="sortable">
+            <thead><tr><th>Transaction type</th><th>Ammount</th></tr></thead>
+            <tbody>${rows}${subtotalRow}</tbody>
+          </table>
+        </div>
       `;
       return { html: fullTable, subtotal };
     };
