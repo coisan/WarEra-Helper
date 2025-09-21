@@ -151,6 +151,7 @@ async function loadUsersByCountry(countryId) {
       const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
       const userLite = (await res.json()).result.data;
 
+      const userId = user._id;
       const name = userLite.username;
       const level = userLite.leveling.level;
       const fight = sumSkillPoints(userLite.skills, FIGHT_SKILLS);
@@ -170,7 +171,7 @@ async function loadUsersByCountry(countryId) {
       const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
       levelCounts[level] = (levelCounts[level] || 0) + 1;
 
-      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, buff, muName });
+      users.push({ userId, name, level, fightRatio, damage, economyRatio, wealth, reset, buff, muName });
     }
 
     cursor = data.result?.data?.nextCursor;
@@ -183,7 +184,7 @@ async function loadUsersByCountry(countryId) {
   renderChart(levelCounts);
   usersTableBody.innerHTML = users.map(u => `
     <tr>
-      <td>${u.name}</td>
+      <td><a href="https://app.warera.io/user/${u.userId}" target="_blank">${u.name}</a></td>
       <td>${u.level}</td>
       <td>${u.fightRatio}</td>
       <td>${u.damage}</td>
