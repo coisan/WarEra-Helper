@@ -16,24 +16,18 @@
       });
   </script>
 
-  <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-    <div style="display: inline-flex; align-items: flex-start;">
-      <label for="countrySelect" style="margin-right: 0.5rem;">Select a country:</label>
-      <select id="countrySelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
-      <div id="battleCount" style="white-space: pre;"></div>
+  <div class="row-flex">
+    <div class="form-group">
+      <label for="countrySelect">Select a country:</label>
+      <select id="countrySelect"></select>
+      <div id="battleCount" style="white-space: pre-line;"></div>
     </div>
-  
-    <div style="display: flex; align-items: center; gap: 1.5em; margin-left: 2em;">
-      <label style="display: flex; align-items: center; gap: 0.4em; margin: 0;">
-        <input type="radio" name="range_choice" value="1" checked> 1 day
-      </label>
-      <label style="display: flex; align-items: center; gap: 0.4em; margin: 0;">
-        <input type="radio" name="range_choice" value="3"> 3 days
-      </label>
-      <label style="display: flex; align-items: center; gap: 0.4em; margin: 0;">
-        <input type="radio" name="range_choice" value="7"> 7 days
-      </label>
-    </div>
+    <fieldset class="radiogroup">
+      <legend>Date range</legend>
+      <label><input type="radio" name="range_choice" value="1" checked> 1 day</label>
+      <label><input type="radio" name="range_choice" value="3"> 3 days</label>
+      <label><input type="radio" name="range_choice" value="7"> 7 days</label>
+    </fieldset>
   </div>
 
   <table id="battleTable">
