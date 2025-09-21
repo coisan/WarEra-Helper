@@ -113,7 +113,7 @@ table {
 
 th {
   background-color: var(--th-bg);
-  color: var(--gold);
+  color: var(--th-tc);
   border-bottom: 3px solid var(--accent-color);
   padding: 0.75rem;
   text-align: center;
