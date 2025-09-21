@@ -30,6 +30,16 @@ function timeUntilReset(lastResetAt) {
   return `${days}d ${hours}h`;
 }
 
+function getTimeDiffString(targetDate) {
+  const now = new Date();
+  const diffMs = Math.abs(now - targetDate); // ms difference
+
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  return `${hours}h${minutes}m`;
+}
+
 async function fetchMuName(id) {
   if (muMap.has(id)) return muMap.get(id);
   const res = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify({ muId: id })));
@@ -37,6 +47,18 @@ async function fetchMuName(id) {
   const name = data.result?.data?.name || id;
   muMap.set(id, name);
   return name;
+}
+
+function checkBuff(userData) {
+  if (userData.buffs) {
+    if (userData.buffs.buffCodes)
+      return "Buff: " + getTimeDiffString(userData.buffs.buffEndAt);
+    if (userData.buffs.debuffCodes)
+      return "Debuff: " + getTimeDiffString(userData.debuffs.buffEndAt);
+  }
+  else {
+    return "";
+  }
 }
 
 async function fetchAllCountries() {
@@ -101,7 +123,7 @@ function renderChart(data) {
 }
 
 async function loadUsersByCountry(countryId) {
-  usersTableBody.innerHTML = "<tr><td colspan='8'>Loading...</td></tr>";
+  usersTableBody.innerHTML = "<tr><td colspan='9'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
@@ -143,10 +165,11 @@ async function loadUsersByCountry(countryId) {
         else hybridCnt += 1;
       }
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
+      const buff = checkBuff(userLite);
       const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
       levelCounts[level] = (levelCounts[level] || 0) + 1;
 
-      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, muName });
+      users.push({ name, level, fightRatio, damage, economyRatio, wealth, reset, buff, muName });
     }
 
     cursor = data.result?.data?.nextCursor;
@@ -166,6 +189,7 @@ async function loadUsersByCountry(countryId) {
       <td>${u.economyRatio}</td>
       <td>${u.wealth}</td>
       <td>${u.reset}</td>
+      <td>${u.buff}</td>
       <td>${u.muName}</td>
     </tr>
   `).join("");
