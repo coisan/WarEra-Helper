@@ -57,7 +57,7 @@ function checkBuff(userData) {
       return "Debuff: " + getTimeDiffString(userData.debuffs.buffEndAt);
   }
   else {
-    return "";
+    return "-";
   }
 }
 
