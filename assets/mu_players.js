@@ -59,18 +59,54 @@ async function fetchCountryName(id) {
   return name;
 }
 
-window.generateMuInfo = async function generateMuInfo() {
+async function fetchAllMUs() {
+  const allMUs = [];
+  let cursor = undefined;
+  while (true) {
+    const input = {
+        "limit": 100,
+      };
+    if (cursor !== undefined) input.cursor = cursor;
+    const res = await fetch("https://api2.warera.io/trpc/mu.getManyPaginated");
+    const data = await res.json();
+    allMUs.push(data);
+    cursor = data.result?.data?.nextCursor;
+    if (!cursor) break;
+  }
+  return allMUs;
+}
+
+async function loadMUs() {
+  const select = document.getElementById("muSelect");
+  select.innerHTML = '<option value="">-- Pick one --</option>';
+  const MUs = await fetchAllMUs();
+
+  MUs.sort((a, b) => {
+    const aPop = a.rankings?.countryActivePopulation?.value ?? 0;
+    const bPop = b.rankings?.countryActivePopulation?.value ?? 0;
+    return bPop - aPop;
+  });
+
+  MUs.forEach(mu => {
+    const pop = (mu.rankings?.countryActivePopulation?.value ?? 0;
+    const option = document.createElement("option");
+    option.value = mu._id;
+    option.textContent = `${mu.name} (${pop.toLocaleString()})`;
+    select.appendChild(option);
+  });
+}
+
+async function loadUsersByMu(selectedMu) {
   usersTableBody.innerHTML = "<tr><td colspan='9'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
-  const muId = document.getElementById("muIdInput").value.trim();
   const users = [];
   let cursor = undefined;
   let fightCnt = 0, hybridCnt = 0, economyCnt = 0;
 
   const input = {
-      "muId": muId,
+      "muId": selectedMu,
     };
   const response = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify(input)));
   const data = await response.json();
@@ -103,14 +139,11 @@ window.generateMuInfo = async function generateMuInfo() {
     const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
     const buff = checkBuff(userLite);
 
-    users.push({ user, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff });
+    users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff });
   }
 
   countDisplay.style.display = "block";
-  countDisplay.innerHTML = `<br><b>${muName}</b><br>
-                            Fight builds (70%+): ${fightCnt}
-                            Hybrid builds: ${hybridCnt}
-                            Economy builds (70%+): ${economyCnt}`;
+  countDisplay.textContent = `Fight builds (70%+): ${fightCnt}\nHybrid builds: ${hybridCnt}\nEconomy builds (70%+): ${economyCnt}`;
   
   usersTableBody.innerHTML = users.map(u => `
     <tr>
@@ -128,3 +161,10 @@ window.generateMuInfo = async function generateMuInfo() {
 
   makeTableSortable("usersTable");
 }
+
+muSelect.addEventListener("change", () => {
+  const muId = muSelect.value;
+  if (muId) loadUsersByMu(muId);
+});
+
+loadMUs();
