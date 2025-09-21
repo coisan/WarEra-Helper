@@ -17,32 +17,34 @@
       });
   </script>
 
-  <div style="display: inline-flex; align-items: flex-start;">
-    <label for="countrySelect" style="margin-right: 0.5rem;">Select a country:</label>
-    <select id="countrySelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
-    <div id="playerCount" style="white-space: pre;"></div>
+  <div class="form-group">
+    <label for="countrySelect">Select a country:</label>
+    <select id="countrySelect"></select>
+    <div id="playerCount"></div>
   </div>
 
   <div class="container" style="margin-top: 20px;">
       <canvas id="playerChart"></canvas>
   </div>
 
-  <table id="usersTable" class="sortable">
-    <thead>
-      <tr>
-        <th data-column="0" class="sortable">Name</th>
-        <th data-column="1" class="sortable">Level</th>
-        <th data-column="2" class="sortable">Fight %</th>
-        <th data-column="3" class="sortable">Weekly dmg</th>
-        <th data-column="4" class="sortable">Economy %</th>
-        <th data-column="5" class="sortable">Wealth</th>
-        <th data-column="6" class="sortable">Skill Reset</th>
-        <th data-column="7" class="sortable">De/buff</th>
-        <th data-column="8" class="sortable">Military Unit</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="table-responsive">
+    <table id="usersTable" class="sortable">
+      <thead>
+        <tr>
+          <th data-column="0" class="sortable">Name</th>
+          <th data-column="1" class="sortable">Level</th>
+          <th data-column="2" class="sortable">Fight %</th>
+          <th data-column="3" class="sortable">Weekly dmg</th>
+          <th data-column="4" class="sortable">Economy %</th>
+          <th data-column="5" class="sortable">Wealth</th>
+          <th data-column="6" class="sortable">Skill Reset</th>
+          <th data-column="7" class="sortable">De/buff</th>
+          <th data-column="8" class="sortable">Military Unit</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module" src="assets/config.js"></script>
