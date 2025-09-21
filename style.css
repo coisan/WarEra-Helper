@@ -4,6 +4,17 @@
   --secondary-color: #2a2a2a;
   --border-color: #444;
   --accent-color: #e53935; /* WarEra red */
+  --accent-color-hover: #c62828;
+  --positive-color: #66bb6a;
+  --negative-color: #ef5350;
+  --dark-gray: #b0bec5;
+  --dark-green: #81c784;
+  --dark-blue: #64b5f6;
+  --purple: #ce93d8;
+  --gold: #fdd835;
+  --th-bg: #333;
+  --th-active-bg: #444;
+  --link-hover-bg: #242424;
 }
 
 body {
@@ -14,14 +25,28 @@ body {
   padding: 2rem;
 }
 
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+}
+
 label {
   display: block;
   margin-top: 1rem;
   font-weight: bold;
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
 input, button, select {
-  width: 220px;
+  width: 100%;
+  max-width: 220px;
   padding: 0.5rem;
   margin-top: 0.5rem;
   background-color: var(--secondary-color);
@@ -30,10 +55,21 @@ input, button, select {
   border-radius: 4px;
   font-family: inherit;
   font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 
-input:focus, select:focus {
-  outline: none;
+@media (max-width: 600px) {
+  input, button, select {
+    max-width: 100%;
+    font-size: 0.95rem;
+    padding: 0.4rem;
+  }
+}
+
+input:focus, select:focus, button:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
   border-color: var(--accent-color);
 }
 
@@ -41,52 +77,46 @@ button {
   background-color: var(--accent-color);
   color: #fff;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-button:hover {
-  background-color: #c62828;
+button:hover,
+nav button:hover {
+  background-color: var(--accent-color-hover);
+  color: #fff;
 }
 
 table {
   width: 100%;
   border-collapse: separate;  /* allows spacing between rows */
-  border-spacing: 0 0.3rem;     /* vertical spacing between rows */
+  border-spacing: 0 0.3rem;  /* vertical spacing between rows */
   margin-top: 2rem;
   background-color: transparent;
+  min-width: 600px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  width: 100%;
+}
+
+@media (max-width: 800px) {
+  table, th, td {
+    font-size: 0.95rem;
+    padding: 0.4rem;
+  }
+  table {
+    min-width: 400px;
+  }
 }
 
 th {
-  background-color: #333;
+  background-color: var(--th-bg);
   color: #fff;
   padding: 0.75rem;
   text-align: center;
   border-radius: 0.5rem 0.5rem 0 0;
-}
-
-tbody tr {
-  background-color: var(--secondary-color);
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-/* normal table cell layout */
-td {
-  padding: 0.5rem;
-  text-align: center;
-  border: 1px solid var(--border-color);
-}
-
-/* Links inside cells */
-td a {
-  color: #e53935;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-td a:hover {
-  color: #fff;
-  text-decoration: underline;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 th.sortable {
@@ -106,40 +136,79 @@ th.sortable::after {
   color: #888;
 }
 
+th.sortable.asc {
+  background-color: var(--th-active-bg);
+  color: var(--accent-color);
+}
+th.sortable.desc {
+  background-color: var(--th-active-bg);
+  color: var(--accent-color);
+}
+
 th.sortable.asc::after {
   content: '▲';
 }
-
 th.sortable.desc::after {
   content: '▼';
 }
 
+tbody tr {
+  background-color: var(--secondary-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+tbody tr:hover {
+  background-color: var(--link-hover-bg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+td {
+  padding: 0.5rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+td a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+td a:hover,
+td a:focus {
+  color: #fff;
+  text-decoration: underline;
+}
+
 .positive {
-  color: #66bb6a;
+  color: var(--positive-color);
 }
 
 .negative {
-  color: #ef5350;
+  color: var(--negative-color);
 }
 
 .dark-gray {
-  color: #b0bec5;
+  color: var(--dark-gray);
 }
 
 .dark-green {
-  color: #81c784;
+  color: var(--dark-green);
 }
 
 .dark-blue {
-  color: #64b5f6;
+  color: var(--dark-blue);
 }
 
 .purple {
-  color: #ce93d8;
+  color: var(--purple);
 }
 
 .gold {
-  color: #fdd835;
+  color: var(--gold);
 }
 
 nav {
@@ -154,11 +223,8 @@ nav button {
   color: var(--text-color);
   border: 1px solid var(--border-color);
   padding: 0.5rem 1rem;
-}
-
-nav button:hover {
-  background-color: #c62828;
-  color: #fff;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .active-nav {
@@ -168,7 +234,7 @@ nav button:hover {
   border-radius: 4px;
 }
 
-/* Dropdown fix for better theming */
+/* Dropdown fix for better theming and arrow */
 select {
   background-color: var(--secondary-color);
   color: var(--text-color);
@@ -179,12 +245,35 @@ select {
   font-size: 1rem;
   appearance: none;
   cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,<svg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'><path d='M1 1l5 5 5-5' stroke='%23b0bec5' stroke-width='2' fill='none' fill-rule='evenodd'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+}
+
+/* Visually hidden for accessibility */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  border: 0 !important;
+  white-space: nowrap !important;
 }
 
 .container canvas {
   max-width: 1500px;
   width: 100%;
   max-height: 843px;
-  /* aspect-ratio: 16 / 9; */
   display: block;
+}
+
+/* Font loading improvement if using web fonts */
+@font-face {
+  font-family: 'Segoe UI';
+  font-display: swap;
+  /* src: url('your-font-path.woff2') format('woff2'); */
 }
