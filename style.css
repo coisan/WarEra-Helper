@@ -55,14 +55,30 @@ table {
   background-color: var(--secondary-color);
 }
 
+/* Table headers and cells */
 th, td {
   padding: 0.5rem;
   border: 1px solid var(--border-color);
   text-align: center;
 }
 
+/* Table header background */
 th {
   background-color: #333;
+  color: #fff;
+}
+
+/* Links inside table cells */
+td a {
+  color: #00f;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* Hover effect for links */
+td a:hover {
+  color: #ff0;
+  text-decoration: underline;
 }
 
 th.sortable {
