@@ -16,8 +16,13 @@
       });
   </script>
   
-  <input id="playerIdInput" type="text" placeholder="Player ID">
-  <button onclick="generatePremiumInfo()">Generate</button>
+  <div class="form-group">
+    <label for="playerIdInput">Player ID:</label>
+    <input id="playerIdInput" type="text" placeholder="Player ID">
+  </div>
+  <div class="form-group">
+    <button onclick="generatePremiumInfo()">Generate</button>
+  </div>
   <div id="loadingMessage" style="display: none; margin-top: 1rem;">
     Loading data...
   </div>
