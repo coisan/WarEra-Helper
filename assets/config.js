@@ -239,6 +239,7 @@ const navMap = {
     'market_stats.html': 'nav-marketstats',
     'price_history.html': 'nav-itemprice',
     'premium_info.html': 'nav-premiuminfo',
+    'mu_players.html': "nav-muplayers",
     'country_wars.html': 'nav-countrywars',
     'country_players.html': 'nav-countryplayers',
     'country_overview.html': 'nav-countryoverview'
