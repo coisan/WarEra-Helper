@@ -69,7 +69,7 @@ async function fetchAllMUs() {
     if (cursor !== undefined) input.cursor = cursor;
     const res = await fetch("https://api2.warera.io/trpc/mu.getManyPaginated?input=" + encodeURIComponent(JSON.stringify(input)));
     const data = await res.json();
-    allMUs.push(data.result.data.items);
+    allMUs.append(data.result.data.items);
     cursor = data.result?.data?.nextCursor;
     if (!cursor) break;
   }
