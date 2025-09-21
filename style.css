@@ -51,7 +51,7 @@ button:hover {
 table {
   width: 100%;
   border-collapse: separate;  /* allows spacing between rows */
-  border-spacing: 0 1rem;     /* vertical spacing between rows */
+  border-spacing: 0 0.3rem;     /* vertical spacing between rows */
   margin-top: 2rem;
   background-color: transparent;
 }
