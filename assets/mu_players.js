@@ -27,6 +27,29 @@ function timeUntilReset(lastResetAt) {
   return `${days}d ${hours}h`;
 }
 
+function getTimeDiffString(targetDate) {
+  const now = new Date();
+  const target = new Date(targetDate)
+  const diffMs = Math.abs(now - target); // ms difference
+
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  return `${hours}h${minutes}m`;
+}
+
+function checkBuff(userData) {
+  if (userData.buffs) {
+    if (userData.buffs.buffCodes)
+      return "Buff: " + getTimeDiffString(userData.buffs.buffEndAt);
+    if (userData.buffs.debuffCodes)
+      return "Debuff: " + getTimeDiffString(userData.buffs.debuffEndAt);
+  }
+  else {
+    return "-";
+  }
+}
+
 async function fetchCountryName(id) {
   if (countryMap.has(id)) return countryMap.get(id);
   const res = await fetch("https://api2.warera.io/trpc/country.getCountryById?input=" + encodeURIComponent(JSON.stringify({ countryId: id })));
@@ -37,7 +60,7 @@ async function fetchCountryName(id) {
 }
 
 window.generateMuInfo = async function generateMuInfo() {
-  usersTableBody.innerHTML = "<tr><td colspan='8'>Loading...</td></tr>";
+  usersTableBody.innerHTML = "<tr><td colspan='9'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
@@ -61,6 +84,7 @@ window.generateMuInfo = async function generateMuInfo() {
     const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
     const userLite = (await res.json()).result.data;
     
+    const userId = user;
     const name = userLite.username;
     const country = await fetchCountryName(userLite.country);
     const level = userLite.leveling.level;
@@ -77,8 +101,9 @@ window.generateMuInfo = async function generateMuInfo() {
       else hybridCnt += 1;
     }
     const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
+    const buff = checkBuff(userLite);
 
-    users.push({ name, country, level, fightRatio, damage, economyRatio, wealth, reset });
+    users.push({ user, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff });
   }
 
   countDisplay.style.display = "block";
@@ -89,7 +114,7 @@ window.generateMuInfo = async function generateMuInfo() {
   
   usersTableBody.innerHTML = users.map(u => `
     <tr>
-      <td>${u.name}</td>
+      <td><a href="https://app.warera.io/user/${u.userId}" target="_blank">${u.name}</a></td>
       <td>${u.country}</td>
       <td>${u.level}</td>
       <td>${u.fightRatio}</td>
@@ -97,6 +122,7 @@ window.generateMuInfo = async function generateMuInfo() {
       <td>${u.economyRatio}</td>
       <td>${u.wealth}</td>
       <td>${u.reset}</td>
+      <td>${u.buff}</td>
     </tr>
   `).join("");
 
