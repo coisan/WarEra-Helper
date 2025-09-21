@@ -15,30 +15,35 @@
           ?.classList.add('active-nav');
       });
   </script>
-  
-  <label for="bonusInput">Production bonus (%):</label>
-  <input type="number" id="bonusInput" placeholder="ex. 45">
 
-  <label for="salaryInput">Salary per PP (leave empty to calculate pp value with no employees):</label>
-  <input type="number" id="salaryInput" placeholder="ex. 0.1">
+  <div class="form-group">
+    <label for="bonusInput">Production bonus (%):</label>
+    <input type="number" id="bonusInput" placeholder="ex. 45">
+  </div>
+  <div class="form-group">
+    <label for="salaryInput">Salary per PP (leave empty to calculate pp value with no employees):</label>
+    <input type="number" id="salaryInput" placeholder="ex. 0.1">
+  </div>
 
-  <div style="margin-top: 1rem;">
+  <div class="form-group">
     <button onclick="calculateAllProfitabilities()">Calculate</button>
   </div>
 
-  <table id="profitTable" hidden>
-    <thead>
-      <tr>
-        <th data-column="0" class="sortable">Item</th>
-        <th data-column="1" class="sortable">Sell price</th>
-        <th data-column="2" class="sortable"></th>
-        <th data-column="3" class="sortable"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Data rows will go here -->
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table id="profitTable" hidden>
+      <thead>
+        <tr>
+          <th data-column="0" class="sortable">Item</th>
+          <th data-column="1" class="sortable">Sell price</th>
+          <th data-column="2" class="sortable"></th>
+          <th data-column="3" class="sortable"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data rows will go here -->
+      </tbody>
+    </table>
+  </div>
 
   <script type="module" src="assets/config.js"></script>
   <script type="module" src="assets/production_profit.js"></script>
