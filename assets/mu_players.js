@@ -143,7 +143,7 @@ async function loadUsersByMu(selectedMu) {
   }
 
   countDisplay.style.display = "block";
-  countDisplay.textContent = `Fight builds (70%+): ${fightCnt}\nHybrid builds: ${hybridCnt}\nEconomy builds (70%+): ${economyCnt}`;
+  countDisplay.innerHTML = `Fight builds (70%+): ${fightCnt}<br>Hybrid builds: ${hybridCnt}<br>Economy builds (70%+): ${economyCnt}`;
   
   usersTableBody.innerHTML = users.map(u => `
     <tr>
