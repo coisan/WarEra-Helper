@@ -17,9 +17,11 @@
       });
   </script>
 
-  <input id="muIdInput" type="text" placeholder="MU ID">
-  <button onclick="generateMuInfo()">Generate</button>
-  <div id="playerCount" style="white-space: pre-line;"></div>
+  <div style="display: inline-flex; align-items: flex-start;">
+    <label for="muSelect" style="margin-right: 0.5rem;">Select a MU:</label>
+    <select id="muSelect" style="font-size: 1rem; padding: 0.4rem 1rem; height: 2.4rem; margin-right: 1rem;"></select>
+    <div id="playerCount" style="white-space: pre-line;"></div>
+  </div>
 
   <table id="usersTable" class="sortable">
     <thead>
