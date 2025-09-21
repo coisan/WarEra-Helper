@@ -82,13 +82,13 @@ async function loadMUs() {
   const MUs = await fetchAllMUs();
 
   MUs.sort((a, b) => {
-    const aPop = a.rankings?.countryActivePopulation?.value ?? 0;
-    const bPop = b.rankings?.countryActivePopulation?.value ?? 0;
+    const aPop = a.members?.length ?? 0;
+    const bPop = b.members?.length ?? 0;
     return bPop - aPop;
   });
 
   MUs.forEach(mu => {
-    const pop = mu.rankings?.countryActivePopulation?.value ?? 0;
+    const pop = mu.members?.length ?? 0;
     const option = document.createElement("option");
     option.value = mu._id;
     option.textContent = `${mu.name} (${pop.toLocaleString()})`;
