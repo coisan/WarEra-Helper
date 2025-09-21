@@ -48,36 +48,52 @@ button:hover {
   background-color: #c62828;
 }
 
+/* Base table reset */
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* separate rows for card effect */
+  border-spacing: 0 1rem;    /* vertical spacing between rows */
   margin-top: 2rem;
-  background-color: var(--secondary-color);
+  background-color: transparent; /* cards will have their own background */
 }
 
-/* Table headers and cells */
-th, td {
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  text-align: center;
-}
-
-/* Table header background */
+/* Table header */
 th {
   background-color: #333;
   color: #fff;
+  padding: 0.75rem;
+  text-align: center;
+  border-radius: 0.5rem 0.5rem 0 0; /* rounded corners for top */
 }
 
-/* Links inside table cells */
+/* Table body rows as cards */
+tbody tr {
+  display: block;               /* each row becomes a block card */
+  background-color: var(--secondary-color);
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Table cells in card style */
+td {
+  display: inline-block;
+  width: 12.5%; /* adjust depending on number of columns */
+  text-align: center;
+  padding: 0.5rem;
+  border: none; /* remove inner borders for cleaner look */
+}
+
+/* Links inside cells */
 td a {
-  color: #0ff;
+  color: #c62828;
   text-decoration: none;
   font-weight: 500;
 }
 
-/* Hover effect for links */
 td a:hover {
-  color: #ff0;
+  color: #fff;
   text-decoration: underline;
 }
 
