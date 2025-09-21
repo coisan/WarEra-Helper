@@ -88,7 +88,7 @@ async function loadMUs() {
   });
 
   MUs.forEach(mu => {
-    const pop = (mu.rankings?.countryActivePopulation?.value ?? 0;
+    const pop = mu.rankings?.countryActivePopulation?.value ?? 0;
     const option = document.createElement("option");
     option.value = mu._id;
     option.textContent = `${mu.name} (${pop.toLocaleString()})`;
