@@ -1,6 +1,24 @@
 const countryMap = new Map();
 const statsByCountry = new Map();
 
+window.addEventListener("DOMContentLoaded", () => {
+  // Set start date to 3 days ago
+  const startDateInput = document.getElementById("startDate");
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+  const yyyyStart = threeDaysAgo.getFullYear();
+  const mmStart = String(threeDaysAgo.getMonth() + 1).padStart(2, '0');
+  const ddStart = String(threeDaysAgo.getDate()).padStart(2, '0');
+  startDateInput.value = `${yyyyStart}-${mmStart}-${ddStart}`;
+
+  // Set end date to today
+  const endDateInput = document.getElementById("endDate");
+  const today = new Date();
+  const yyyyEnd = today.getFullYear();
+  const mmEnd = String(today.getMonth() + 1).padStart(2, '0');
+  const ddEnd = String(today.getDate()).padStart(2, '0');
+  endDateInput.value = `${yyyyEnd}-${mmEnd}-${ddEnd}`;
+});
+
 document.getElementById("countrySelect").addEventListener("change", (e) => {
   const selectedId = e.target.value;
   if (selectedId) {
@@ -32,17 +50,10 @@ async function fetchBattles() {
   
   const startInput = document.getElementById("startDate").value;
   const endInput = document.getElementById("endDate").value;
-
-  let startDate = 0;
-  let endDate = Date.now(); // Default to now
-
-  if (startInput) {
-    startDate = new Date(startInput).getTime();
-  }
-  if (endInput) {
-    endDate = new Date(endInput).setHours(23,59,59,999);
-  }
-
+  
+  let startDate = startInput ? new Date(startInput).getTime() : (Date.now() - 3 * 24 * 60 * 60 * 1000); // fallback to 3 days ago
+  let endDate = endInput ? new Date(endInput).setHours(23,59,59,999) : Date.now();
+  
   let nextCursor = new Date(endDate);
 
   while (true) {
