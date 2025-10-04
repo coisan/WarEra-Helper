@@ -14,6 +14,13 @@ document.getElementById("countrySelect").addEventListener("change", (e) => {
   }
 });
 
+document.getElementById("customRangeBtn").addEventListener("click", () => {
+  const selectedId = document.getElementById("countrySelect").value;
+  if (selectedId) {
+    buildStats(selectedId); // Will now respect custom dates
+  }
+});
+
 async function fetchAllCountries() {
   const res = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
   const data = await res.json();
@@ -22,9 +29,21 @@ async function fetchAllCountries() {
 
 async function fetchBattles() {
   const allBattles = [];
-  let nextCursor = null;
-  const selectedRange = document.querySelector('input[name="range_choice"]:checked');
-  const startDate = Date.now() - selectedRange.value * 24 * 60 * 60 * 1000;
+  
+  const startInput = document.getElementById("startDate").value;
+  const endInput = document.getElementById("endDate").value;
+
+  let startDate = 0;
+  let endDate = Date.now(); // Default to now
+
+  if (startInput) {
+    startDate = new Date(startInput).getTime();
+  }
+  if (endInput) {
+    endDate = new Date(endInput).setHours(23,59,59,999);
+  }
+
+  let nextCursor = new Date(endDate);
 
   while (true) {
     const input = {
@@ -39,16 +58,18 @@ async function fetchBattles() {
 
     if (!result?.items?.length) break;
 
+    var timestamp;
     for (const battle of result.items) {
-      const timestamp = new Date(battle.createdAt).getTime();
-      if (timestamp < startDate) {
-        return { items: allBattles };
-      }
+      timestamp = new Date(battle.createdAt).getTime();
+      if (timestamp < startDate || timestamp > endDate) continue;
       allBattles.push(battle);
     }
 
-    nextCursor = result.nextCursor;
-    if (!nextCursor) break; // no more pages
+    if (timestamp >= startDate)
+      nextCursor = result.nextCursor;
+    else
+      break;
+    if (!nextCursor) break;
   }
 
   return { items: allBattles };
