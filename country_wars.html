@@ -23,9 +23,13 @@
     </div>
     <fieldset class="radiogroup">
       <legend>Date range</legend>
-      <label class="radio-label"><input type="radio" name="range_choice" value="1" checked>1 day</label>
-      <label class="radio-label"><input type="radio" name="range_choice" value="3">3 days</label>
-      <label class="radio-label"><input type="radio" name="range_choice" value="7">7 days</label>
+      <label for="startDate">Start Date:</label>
+      <input type="date" id="startDate">
+      
+      <label for="endDate">End Date:</label>
+      <input type="date" id="endDate">
+      
+      <button id="customRangeBtn">Apply Date Range</button>
     </fieldset>
     <div id="battleCount" style="white-space: pre-line;"></div>
   </div>
