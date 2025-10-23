@@ -164,10 +164,11 @@ async function loadUsersByMu(selectedMu) {
     }
     const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
     const buff = checkBuff(userLite);
-    const threat = calcDamage(userLite);
+    let threat = calcDamage(userLite);
     totalDamage += threat;
+    threat = threat.toLocaleString();
 
-    users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff, threat.toLocaleString() });
+    users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff, threat });
   }
 
   countDisplay.style.display = "block";
