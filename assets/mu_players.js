@@ -129,7 +129,7 @@ async function loadUsersByMu(selectedMu) {
   
   const users = [];
   let cursor = undefined;
-  let fightCnt = 0, hybridCnt = 0, economyCnt = 0;
+  let fightCnt = 0, hybridCnt = 0, economyCnt = 0, totalDamage = 0;
 
   const input = {
       "muId": selectedMu,
@@ -165,12 +165,14 @@ async function loadUsersByMu(selectedMu) {
     const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
     const buff = checkBuff(userLite);
     const threat = calcDamage(userLite);
+    totalDamage += threat;
+    threat = threat.toLocaleString();
 
     users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff, threat });
   }
 
   countDisplay.style.display = "block";
-  countDisplay.innerHTML = `Fight builds (70%+): ${fightCnt}<br>Hybrid builds: ${hybridCnt}<br>Economy builds (70%+): ${economyCnt}`;
+  countDisplay.innerHTML = `Fight builds (70%+): ${fightCnt}<br>Hybrid builds: ${hybridCnt}<br>Economy builds (70%+): ${economyCnt}<br>Total potential damage: ${totalDamage.toLocaleString()}`;
   
   usersTableBody.innerHTML = users.map(u => `
     <tr>
