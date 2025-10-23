@@ -1,7 +1,6 @@
 const SKILL_COSTS = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
 const FIGHT_SKILLS = ["health", "hunger", "attack", "criticalChance", "criticalDamages", "armor", "precision", "dodge", "lootChance"];
 const ECONOMY_SKILLS = ["energy", "companies", "entrepreneurship", "production"];
-const FOOD_REGEN = 20;
 
 const usersTableBody = document.querySelector("#usersTable tbody");
 const countryMap = new Map();
@@ -52,7 +51,8 @@ function checkBuff(userData) {
 }
 
 function calcDamage(userData) {
-  const total_health = Math.floor(userData.skills.health.currentBarValue + userData.skills.hunger.currentBarValue * FOOD_REGEN);
+  const regenSelect = document.getElementById("regenSelect")
+  const total_health = Math.floor(userData.skills.health.currentBarValue + userData.skills.hunger.currentBarValue * regenSelect.value);
   const attacks = Math.floor(Math.floor(total_health / (10 * (1 - userData.skills.armor.total/100))) / (1 - userData.skills.dodge.total/100));
   const miss_damage = Math.round(userData.skills.attack.total * (1 - userData.skills.precision.total/100));
   const normal_damage = Math.round(userData.skills.attack.total * (userData.skills.precision.total/100) * (1 - userData.skills.criticalChance.total/100));
