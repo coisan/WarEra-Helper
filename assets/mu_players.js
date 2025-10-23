@@ -87,8 +87,8 @@ async function fetchAllMUs() {
 }
 
 async function loadMUs() {
-  const select = document.getElementById("muSelect");
-  select.innerHTML = '<option value="">-- Pick one --</option>';
+  const muSelect = document.getElementById("muSelect");
+  muSelect.innerHTML = '<option value="">-- Pick one --</option>';
   const MUs = await fetchAllMUs();
 
   MUs.sort((a, b) => {
@@ -102,8 +102,24 @@ async function loadMUs() {
     const option = document.createElement("option");
     option.value = mu._id;
     option.textContent = `${mu.name} (${pop.toLocaleString()})`;
-    select.appendChild(option);
+    muSelect.appendChild(option);
   });
+}
+
+function populateRegens() {
+  const regenSelect = document.getElementById("regenSelect");
+  const options = [
+                    { value: "10", text: "Bread (10 hp)" },
+                    { value: "20", text: "Steak (20 hp)" },
+                    { value: "30", text: "Cooked fish (30 hp)" }
+                  ];
+
+  for (const { value, text } of options) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = text;
+    regenSelect.appendChild(option);
+  }
 }
 
 async function loadUsersByMu(selectedMu) {
@@ -180,3 +196,4 @@ muSelect.addEventListener("change", () => {
 });
 
 loadMUs();
+populateRegens();
