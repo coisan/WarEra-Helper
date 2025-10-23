@@ -1,6 +1,7 @@
 const SKILL_COSTS = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
 const FIGHT_SKILLS = ["health", "hunger", "attack", "criticalChance", "criticalDamages", "armor", "precision", "dodge", "lootChance"];
 const ECONOMY_SKILLS = ["energy", "companies", "entrepreneurship", "production"];
+const FOOD_REGEN = 20;
 
 const usersTableBody = document.querySelector("#usersTable tbody");
 const countryMap = new Map();
@@ -50,6 +51,15 @@ function checkBuff(userData) {
   }
 }
 
+function calcDamage(userData) {
+  const total_health = Math.floor(userData.skills.health.currentBarValue + userData.skills.hunger.currentBarValue * FOOD_REGEN);
+  const attacks = Math.floor(Math.floor(total_health / (10 * (1 - userData.skills.armor.total/100))) / (1 - userData.skills.dodge.total/100));
+  const miss_damage = Math.round(userData.skills.attack.total * (1 - userData.skills.precision.total/100));
+  const normal_damage = Math.round(userData.skills.attack.total * (userData.skills.precision.total/100) * (1 - userData.skills.criticalChance.total/100));
+  const crit_damage = Math.round(userData.skills.attack.total * (userData.skills.precision.total/100) * (userData.skills.criticalChance.total/100) * (1 + userData.skills.criticalDamages.total/100));
+  return miss_damage + normal_damage + crit_damage;
+}
+
 async function fetchCountryName(id) {
   if (countryMap.has(id)) return countryMap.get(id);
   const res = await fetch("https://api2.warera.io/trpc/country.getCountryById?input=" + encodeURIComponent(JSON.stringify({ countryId: id })));
@@ -97,7 +107,7 @@ async function loadMUs() {
 }
 
 async function loadUsersByMu(selectedMu) {
-  usersTableBody.innerHTML = "<tr><td colspan='9'>Loading...</td></tr>";
+  usersTableBody.innerHTML = "<tr><td colspan='10'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
@@ -138,8 +148,9 @@ async function loadUsersByMu(selectedMu) {
     }
     const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
     const buff = checkBuff(userLite);
+    const threat = calcDamage(userLite);
 
-    users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff });
+    users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff, threat });
   }
 
   countDisplay.style.display = "block";
@@ -156,6 +167,7 @@ async function loadUsersByMu(selectedMu) {
       <td>${u.wealth}</td>
       <td>${u.reset}</td>
       <td>${u.buff}</td>
+      <td>${u.threat}</td>
     </tr>
   `).join("");
 
