@@ -57,7 +57,7 @@ function calcDamage(userData) {
   const miss_damage = Math.round(userData.skills.attack.total * (1 - userData.skills.precision.total/100));
   const normal_damage = Math.round(userData.skills.attack.total * (userData.skills.precision.total/100) * (1 - userData.skills.criticalChance.total/100));
   const crit_damage = Math.round(userData.skills.attack.total * (userData.skills.precision.total/100) * (userData.skills.criticalChance.total/100) * (1 + userData.skills.criticalDamages.total/100));
-  return miss_damage + normal_damage + crit_damage;
+  return attacks * (miss_damage + normal_damage + crit_damage);
 }
 
 async function fetchCountryName(id) {
