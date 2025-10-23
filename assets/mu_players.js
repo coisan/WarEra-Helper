@@ -166,9 +166,8 @@ async function loadUsersByMu(selectedMu) {
     const buff = checkBuff(userLite);
     const threat = calcDamage(userLite);
     totalDamage += threat;
-    threat = threat.toLocaleString();
 
-    users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff, threat });
+    users.push({ userId, name, country, level, fightRatio, damage, economyRatio, wealth, reset, buff, threat.toLocaleString() });
   }
 
   countDisplay.style.display = "block";
