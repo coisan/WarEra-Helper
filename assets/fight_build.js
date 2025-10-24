@@ -1,22 +1,30 @@
-// ==============================
-// FIGHT BUILD CALCULATOR
-// ==============================
+// =========================
+// fight_build.js
+// =========================
 
-// === Run on page load to populate dropdowns ===
-window.addEventListener("DOMContentLoaded", () => {
-  populateRegens();
-  populateAmmos();
-});
+// --- Skill data (values for levels 0–10) ---
+const skillValues = {
+  attack:     [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
+  precision:  [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00],
+  critChance: [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60],
+  critDamage: [1.00, 1.20, 1.40, 1.60, 1.80, 2.00, 2.20, 2.40, 2.60, 2.80, 3.00],
+  armor:      [0.00, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.40],
+  dodge:      [0.00, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.40],
+  health:     [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150],
+  hunger:     [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+};
 
-// === Populate the health regen options ===
+// --- Skill point cost for levels 0–10 ---
+const fight_costRow = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
+
+// --- Populate regenSelect dropdown ---
 function populateRegens() {
   const regenSelect = document.getElementById("regenSelect");
   const options = [
     { value: "10", text: "Bread (10 hp)" },
     { value: "20", text: "Steak (20 hp)" },
-    { value: "30", text: "Cooked fish (30 hp)" },
+    { value: "30", text: "Cooked fish (30 hp)" }
   ];
-
   for (const { value, text } of options) {
     const option = document.createElement("option");
     option.value = value;
@@ -25,15 +33,14 @@ function populateRegens() {
   }
 }
 
-// === Populate the ammo type options ===
-function populateAmmos() {
+// --- Populate ammoSelect dropdown ---
+function populateAmmo() {
   const ammoSelect = document.getElementById("ammoSelect");
   const options = [
     { value: "0.1", text: "Light ammo (10%)" },
     { value: "0.2", text: "Ammo (20%)" },
-    { value: "0.3", text: "Heavy ammo (30%)" },
+    { value: "0.3", text: "Heavy ammo (30%)" }
   ];
-
   for (const { value, text } of options) {
     const option = document.createElement("option");
     option.value = value;
@@ -42,146 +49,99 @@ function populateAmmos() {
   }
 }
 
-// ==============================
-// MAIN BUILD GENERATOR
-// ==============================
+// --- Convert single index to skill combo ---
+function indexToCombo(index, numRows, numCols) {
+  const combo = [];
+  for (let i = 0; i < numRows; i++) {
+    combo.unshift(index % numCols);
+    index = Math.floor(index / numCols);
+  }
+  return combo;
+}
 
-window.calcFightBuilds = function () {
+// --- Damage evaluation function ---
+function evaluateDamage(skills, regenValue, ammoValue) {
+  const daily_health = skills.health * 2.4 + Math.floor(skills.hunger * 2.4) * regenValue;
+
+  const attacks = Math.floor(
+    Math.floor(daily_health / (10 * (1 - skills.armor))) * (1 + skills.dodge)
+  );
+
+  const miss_damage = skills.attack * (1 - skills.precision);
+  const normal_damage = skills.attack * skills.precision * (1 - skills.critChance);
+  const crit_damage = skills.attack * skills.precision * skills.critChance * (skills.critDamage);
+
+  const daily_damage = attacks * Math.round((miss_damage + normal_damage + crit_damage) * (1 + ammoValue));
+
+  return daily_damage;
+}
+
+// --- Main calculation function ---
+function calcFightBuilds() {
   const tbody = document.querySelector("#skillsTable tbody");
-
-  // === Show progress message ===
   tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds...</td></tr>";
 
-  // === 1. Read all input values ===
-  const spLimit = parseInt(document.getElementById("spInput").value) || 0;
-  const regenValue = parseFloat(document.getElementById("regenSelect").value) || 0;
-  const ammoValue = parseFloat(document.getElementById("ammoSelect").value) || 0;
+  const spLimit = parseInt(document.getElementById("spInput").value || "0");
+  const regenValue = parseFloat(document.getElementById("regenSelect").value || "0");
+  const ammoValue = parseFloat(document.getElementById("ammoSelect").value || "0");
 
-  const weaponDmg = parseFloat(document.getElementById("weaponDmg").value) || 0;
-  const weaponCritCh = parseFloat(document.getElementById("weaponCritCh").value) || 0;
-  const helmetCritDmg = parseFloat(document.getElementById("helmetCritDmg").value) || 0;
-  const chestArmor = parseFloat(document.getElementById("chestArmor").value) || 0;
-  const pantsArmor = parseFloat(document.getElementById("pantsArmor").value) || 0;
-  const bootsDodge = parseFloat(document.getElementById("bootsDodge").value) || 0;
-  const glovesPrec = parseFloat(document.getElementById("glovesPrec").value) || 0;
-
-  // === 2. Define skill categories ===
-  const skillNames = [
-    "attack",
-    "precision",
-    "criticalChance",
-    "criticalDamage",
-    "armor",
-    "dodge",
-    "health",
-    "hunger",
-  ];
-
-  // === 3. Equipment bonuses (fight_itemBonuses equivalent) ===
-  const itemBonuses = {
-    attack: weaponDmg,
-    precision: glovesPrec,
-    criticalChance: weaponCritCh,
-    criticalDamage: helmetCritDmg,
-    armor: chestArmor + pantsArmor,
-    dodge: bootsDodge,
-    health: 0,
-    hunger: 0,
-  };
-
-  // === 4. Skill level cost table (fight_costRow) ===
-  const skillCosts = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
-  const MAX_LEVEL = skillCosts.length - 1;
-  const POINT_TOLERANCE = 4;
+  const numSkills = 8;
+  const numLevels = 11;
+  const totalCombos = Math.pow(numLevels, numSkills);
 
   const topResults = [];
 
-  // === 5. Generate all possible skill combinations ===
-  const combos = [];
-  function generateCombos(index, current) {
-    if (index === skillNames.length) {
-      const totalCost = current.reduce((sum, lvl) => sum + skillCosts[lvl], 0);
-      if (totalCost <= spLimit && totalCost >= spLimit - POINT_TOLERANCE) {
-        combos.push({ levels: [...current], totalCost });
-      }
-      return;
-    }
+  for (let i = 0; i < totalCombos; i++) {
+    const combo = indexToCombo(i, numSkills, numLevels);
+    const totalCost = combo.reduce((sum, lvl) => sum + fight_costRow[lvl], 0);
 
-    for (let lvl = 0; lvl <= MAX_LEVEL; lvl++) {
-      current[index] = lvl;
-      generateCombos(index + 1, current);
-    }
-  }
+    if (totalCost > spLimit) continue;
 
-  generateCombos(0, Array(skillNames.length).fill(0));
-  console.log(`Generated ${combos.length.toLocaleString()} possible skill configurations.`);
-
-  // === 6. Evaluate each combination ===
-  for (const { levels, totalCost } of combos) {
-    const skills = {};
-    skillNames.forEach((name, i) => {
-      skills[name] = levels[i] + (itemBonuses[name] || 0);
-    });
+    const skills = {
+      attack: skillValues.attack[combo[0]],
+      precision: skillValues.precision[combo[1]],
+      critChance: skillValues.critChance[combo[2]],
+      critDamage: skillValues.critDamage[combo[3]],
+      armor: skillValues.armor[combo[4]],
+      dodge: skillValues.dodge[combo[5]],
+      health: skillValues.health[combo[6]],
+      hunger: skillValues.hunger[combo[7]],
+    };
 
     const daily_damage = evaluateDamage(skills, regenValue, ammoValue);
 
     topResults.push({
-      daily_damage,
-      cost: totalCost,
-      ...skills,
+      combo,
+      skills,
+      totalCost,
+      daily_damage
     });
   }
 
-  // === 7. Sort and display results ===
-  const sorted = topResults.sort((a, b) => b.daily_damage - a.daily_damage).slice(0, 10);
+  topResults.sort((a, b) => b.daily_damage - a.daily_damage);
+  const best10 = topResults.slice(0, 10);
 
-  // Clear loading message
   tbody.innerHTML = "";
-
-  for (const r of sorted) {
+  for (const r of best10) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${r.daily_damage}</td>
-      <td>${r.cost}</td>
-      <td>${r.attack.toFixed(1)}</td>
-      <td>${r.precision.toFixed(1)}</td>
-      <td>${r.criticalChance.toFixed(1)}</td>
-      <td>${r.criticalDamage.toFixed(1)}</td>
-      <td>${r.armor.toFixed(1)}</td>
-      <td>${r.dodge.toFixed(1)}</td>
-      <td>${r.health.toFixed(1)}</td>
-      <td>${r.hunger.toFixed(1)}</td>
+      <td>${r.totalCost}</td>
+      <td>${r.skills.attack}</td>
+      <td>${(r.skills.precision*100).toFixed(1)}%</td>
+      <td>${(r.skills.critChance*100).toFixed(1)}%</td>
+      <td>${(r.skills.critDamage*100).toFixed(1)}%</td>
+      <td>${(r.skills.armor*100).toFixed(1)}%</td>
+      <td>${(r.skills.dodge*100).toFixed(1)}%</td>
+      <td>${r.skills.health}</td>
+      <td>${r.skills.hunger}</td>
     `;
     tbody.appendChild(tr);
   }
-
-  console.log("Calculation complete. Displaying top 10 results.");
-};
-
-// ==============================
-// DAMAGE EVALUATION FUNCTION
-// ==============================
-
-function evaluateDamage(skills, regenValue, ammoValue) {
-  // === Daily health from AppScript logic ===
-  const daily_health = skills.health * 2.4 + Math.floor(skills.hunger * 2.4) * regenValue;
-
-  const attacks = Math.floor(
-    Math.floor(daily_health / (10 * (1 - skills.armor / 100))) * (1 + skills.dodge / 100)
-  );
-
-  const miss_damage = skills.attack * (1 - skills.precision / 100);
-  const normal_damage =
-    skills.attack * (skills.precision / 100) * (1 - skills.criticalChance / 100);
-  const crit_damage =
-    skills.attack *
-    (skills.precision / 100) *
-    (skills.criticalChance / 100) *
-    (1 + skills.criticalDamage / 100);
-
-  // Apply ammo bonus multiplier
-  const daily_damage =
-    attacks * Math.round((miss_damage + normal_damage + crit_damage) * (1 + ammoValue));
-
-  return daily_damage;
 }
+
+// --- Initialize dropdowns on page load ---
+document.addEventListener("DOMContentLoaded", () => {
+  populateRegens();
+  populateAmmo();
+});
