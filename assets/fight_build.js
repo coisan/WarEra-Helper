@@ -77,7 +77,7 @@ function evaluateDamage(skills, regenValue, ammoValue) {
 }
 
 // --- Main calculation function ---
-function calcFightBuilds() {
+window.calcFightBuilds = function calcFightBuilds() {
   const tbody = document.querySelector("#skillsTable tbody");
   tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds...</td></tr>";
 
