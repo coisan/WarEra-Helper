@@ -91,7 +91,6 @@ window.calcFightBuilds = function calcFightBuilds() {
   const tbody = document.querySelector("#skillsTable tbody");
   tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds... 0%</td></tr>";
 
-  const spLimit = parseInt(document.getElementById("spInput").value || "0");
   const regenValue = parseFloat(document.getElementById("regenSelect").value || "0");
   const ammoValue = parseFloat(document.getElementById("ammoSelect").value || "0");
 
