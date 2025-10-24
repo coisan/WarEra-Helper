@@ -67,9 +67,9 @@ function evaluateDamage(skills, regenValue, ammoValue) {
     Math.floor(daily_health / (10 * (1 - skills.armor))) * (1 + skills.dodge)
   );
 
-  const miss_damage = skills.attack * (1 - skills.precision);
+  const miss_damage = skills.attack * (1 - skills.precision) * 0.5;
   const normal_damage = skills.attack * skills.precision * (1 - skills.critChance);
-  const crit_damage = skills.attack * skills.precision * skills.critChance * skills.critDamage;
+  const crit_damage = skills.attack * skills.precision * skills.critChance * (1 + skills.critDamage);
 
   const daily_damage = attacks * Math.round((miss_damage + normal_damage + crit_damage) * (1 + ammoValue));
 
