@@ -69,7 +69,7 @@ function evaluateDamage(skills, regenValue, ammoValue) {
 
   const miss_damage = skills.attack * (1 - skills.precision);
   const normal_damage = skills.attack * skills.precision * (1 - skills.critChance);
-  const crit_damage = skills.attack * skills.precision * skills.critChance * (skills.critDamage);
+  const crit_damage = skills.attack * skills.precision * skills.critChance * skills.critDamage;
 
   const daily_damage = attacks * Math.round((miss_damage + normal_damage + crit_damage) * (1 + ammoValue));
 
@@ -84,6 +84,15 @@ window.calcFightBuilds = function calcFightBuilds() {
   const spLimit = parseInt(document.getElementById("spInput").value || "0");
   const regenValue = parseFloat(document.getElementById("regenSelect").value || "0");
   const ammoValue = parseFloat(document.getElementById("ammoSelect").value || "0");
+
+  // --- Read equipment bonuses ---
+  const weaponDmg = parseFloat(document.getElementById("weaponDmg").value || 0);
+  const weaponCritCh = parseFloat(document.getElementById("weaponCritCh").value || 0);
+  const helmetCritDmg = parseFloat(document.getElementById("helmetCritDmg").value || 0);
+  const chestArmor = parseFloat(document.getElementById("chestArmor").value || 0);
+  const pantsArmor = parseFloat(document.getElementById("pantsArmor").value || 0);
+  const bootsDodge = parseFloat(document.getElementById("bootsDodge").value || 0);
+  const glovesPrec = parseFloat(document.getElementById("glovesPrec").value || 0);
 
   const numSkills = 8;
   const numLevels = 11;
@@ -100,15 +109,16 @@ window.calcFightBuilds = function calcFightBuilds() {
       const totalCost = combo.reduce((sum, lvl) => sum + fight_costRow[lvl], 0);
       if (totalCost > spLimit) continue;
 
+      // --- Combine skills + equipment bonuses ---
       const skills = {
-        attack: skillValues.attack[combo[0]],
-        precision: skillValues.precision[combo[1]],
-        critChance: skillValues.critChance[combo[2]],
-        critDamage: skillValues.critDamage[combo[3]],
-        armor: skillValues.armor[combo[4]],
-        dodge: skillValues.dodge[combo[5]],
+        attack: skillValues.attack[combo[0]] + weaponDmg,
+        precision: skillValues.precision[combo[1]] + glovesPrec,
+        critChance: skillValues.critChance[combo[2]] + weaponCritCh,
+        critDamage: skillValues.critDamage[combo[3]] + helmetCritDmg,
+        armor: skillValues.armor[combo[4]] + chestArmor + pantsArmor,
+        dodge: skillValues.dodge[combo[5]] + bootsDodge,
         health: skillValues.health[combo[6]],
-        hunger: skillValues.hunger[combo[7]],
+        hunger: skillValues.hunger[combo[7]]
       };
 
       const daily_damage = evaluateDamage(skills, regenValue, ammoValue);
