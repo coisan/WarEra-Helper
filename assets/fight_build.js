@@ -17,6 +17,16 @@ const skillValues = {
 // --- Skill point cost for levels 0–10 ---
 const fight_costRow = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
 
+function clampInput(id, min, max) {
+  const input = document.getElementById(id);
+  let value = parseFloat(input.value);
+  if (isNaN(value)) value = min;        // default if user typed non-number
+  if (value < min) value = min;         // clamp to min
+  if (value > max) value = max;         // clamp to max
+  input.value = value;                  // update the input visually
+  return value;                         // return the safe value
+}
+
 // --- Populate regenSelect dropdown ---
 function populateRegens() {
   const regenSelect = document.getElementById("regenSelect");
@@ -86,13 +96,14 @@ window.calcFightBuilds = function calcFightBuilds() {
   const ammoValue = parseFloat(document.getElementById("ammoSelect").value || "0");
 
   // --- Read equipment bonuses ---
-  const weaponDmg = parseFloat(document.getElementById("weaponDmg").value || 0);
-  const weaponCritCh = parseFloat(document.getElementById("weaponCritCh").value/100 || 0);
-  const helmetCritDmg = parseFloat(document.getElementById("helmetCritDmg").value/100 || 0);
-  const chestArmor = parseFloat(document.getElementById("chestArmor").value/100 || 0);
-  const pantsArmor = parseFloat(document.getElementById("pantsArmor").value/100 || 0);
-  const bootsDodge = parseFloat(document.getElementById("bootsDodge").value/100 || 0);
-  const glovesPrec = parseFloat(document.getElementById("glovesPrec").value/100 || 0);
+  const spLimit       = clampInput("spInput", 0, 120);
+  const weaponDmg     = clampInput("weaponDmg", 0, 280);
+  const weaponCritCh  = clampInput("weaponCritCh", 0, 40)/100;
+  const helmetCritDmg = clampInput("helmetCritDmg", 0, 80)/100;
+  const chestArmor    = clampInput("chestArmor", 0, 40)/100;
+  const pantsArmor    = clampInput("pantsArmor", 0, 40)/100;
+  const bootsDodge    = clampInput("bootsDodge", 0, 40)/100;
+  const glovesPrec    = clampInput("glovesPrec", 0, 40)/100;
 
   const numSkills = 8;
   const numLevels = 11;
