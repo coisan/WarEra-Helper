@@ -287,7 +287,7 @@ select {
 }
 
 .row-flex label {
-  width: 160px;          /* fixed width for all labels */
+  width: 240px;          /* fixed width for all labels */
   text-align: right;     /* labels align right against input */
   margin-right: 0.5rem;  /* small gap between label and input */
 }
