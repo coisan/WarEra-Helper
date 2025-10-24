@@ -20,7 +20,7 @@
   <div class="row-flex">
     <div class="form-group">
       <label for="spInput">Available skill points:</label>
-      <input id="spInput"></input>
+      <input id="spInput" type="number" min="0" max="120" step="1"></input>
     </div>
     <div class="form-group">
       <label for="regenSelect">Select a health regen item:</label>
@@ -34,28 +34,28 @@
 
   <div class="row-flex">
     <label for="weaponInput">Weapon (damage, crit. chance):</label>
-    <input id="weaponDmg"></input>
-    <input id="weaponCritCh"></input>
+    <input id="weaponDmg" type="number" min="0" max="280" step="1"></input>
+    <input id="weaponCritCh" type="number" min="0" max="40" step="1"></input>
   </div>
   <div class="row-flex">
     <label for="helmetInput">Helmet (crit. damage):</label>
-    <input id="helmetCritDmg"></input>
+    <input id="helmetCritDmg" type="number" min="0" max="80" step="1"></input>
   </div>
   <div class="row-flex">
     <label for="chestInput">Chest (armor):</label>
-    <input id="chestArmor"></input>
+    <input id="chestArmor" type="number" min="0" max="40" step="1"></input>
   </div>
   <div class="row-flex">
     <label for="pantsInput">Pants (armor):</label>
-    <input id="pantsArmor"></input>
+    <input id="pantsArmor" type="number" min="0" max="40" step="1"></input>
   </div>
   <div class="row-flex">
     <label for="bootsInput">Boots (dodge):</label>
-    <input id="bootsDodge"></input>
+    <input id="bootsDodge" type="number" min="0" max="40" step="1"></input>
   </div>
   <div class="row-flex">
     <label for="glovesInput">Gloves (precision):</label>
-    <input id="glovesPrec"></input>
+    <input id="glovesPrec" type="number" min="0" max="40" step="1"></input>
   </div>
   <button onclick="calcFightBuilds()">Generate</button>
 
