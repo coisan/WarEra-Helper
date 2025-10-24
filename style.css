@@ -281,10 +281,21 @@ select {
 
 .row-flex {
   display: flex;
-  align-items: flex-start; /* aligns tops, not bottom */
-  gap: 2rem;
+  align-items: center;   /* vertically center label + input */
+  gap: 1rem;             /* space between label and input */
   margin-bottom: 1rem;
 }
+
+.row-flex label {
+  width: 160px;          /* fixed width for all labels */
+  text-align: right;     /* labels align right against input */
+  margin-right: 0.5rem;  /* small gap between label and input */
+}
+
+.row-flex input {
+  width: 80px;           /* optional: consistent input width */
+}
+
 fieldset.radiogroup {
   border: 1px solid var(--border-color, #444);
   border-radius: 8px;
