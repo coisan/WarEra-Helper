@@ -76,10 +76,10 @@ function evaluateDamage(skills, regenValue, ammoValue) {
   return daily_damage;
 }
 
-// --- Main calculation function ---
+// --- Main calculation function with progress update ---
 window.calcFightBuilds = function calcFightBuilds() {
   const tbody = document.querySelector("#skillsTable tbody");
-  tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds...</td></tr>";
+  tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds... 0%</td></tr>";
 
   const spLimit = parseInt(document.getElementById("spInput").value || "0");
   const regenValue = parseFloat(document.getElementById("regenSelect").value || "0");
@@ -90,55 +90,70 @@ window.calcFightBuilds = function calcFightBuilds() {
   const totalCombos = Math.pow(numLevels, numSkills);
 
   const topResults = [];
+  let i = 0;
+  const chunkSize = 50000; // combos per chunk
 
-  for (let i = 0; i < totalCombos; i++) {
-    const combo = indexToCombo(i, numSkills, numLevels);
-    const totalCost = combo.reduce((sum, lvl) => sum + fight_costRow[lvl], 0);
+  function processChunk() {
+    const end = Math.min(i + chunkSize, totalCombos);
+    for (; i < end; i++) {
+      const combo = indexToCombo(i, numSkills, numLevels);
+      const totalCost = combo.reduce((sum, lvl) => sum + fight_costRow[lvl], 0);
+      if (totalCost > spLimit) continue;
 
-    if (totalCost > spLimit) continue;
+      const skills = {
+        attack: skillValues.attack[combo[0]],
+        precision: skillValues.precision[combo[1]],
+        critChance: skillValues.critChance[combo[2]],
+        critDamage: skillValues.critDamage[combo[3]],
+        armor: skillValues.armor[combo[4]],
+        dodge: skillValues.dodge[combo[5]],
+        health: skillValues.health[combo[6]],
+        hunger: skillValues.hunger[combo[7]],
+      };
 
-    const skills = {
-      attack: skillValues.attack[combo[0]],
-      precision: skillValues.precision[combo[1]],
-      critChance: skillValues.critChance[combo[2]],
-      critDamage: skillValues.critDamage[combo[3]],
-      armor: skillValues.armor[combo[4]],
-      dodge: skillValues.dodge[combo[5]],
-      health: skillValues.health[combo[6]],
-      hunger: skillValues.hunger[combo[7]],
-    };
+      const daily_damage = evaluateDamage(skills, regenValue, ammoValue);
 
-    const daily_damage = evaluateDamage(skills, regenValue, ammoValue);
+      topResults.push({
+        combo,
+        skills,
+        totalCost,
+        daily_damage
+      });
+    }
 
-    topResults.push({
-      combo,
-      skills,
-      totalCost,
-      daily_damage
-    });
+    // Update progress %
+    const percent = Math.floor((i / totalCombos) * 100);
+    tbody.innerHTML = `<tr><td colspan='10'>Calculating best builds... ${percent}%</td></tr>`;
+
+    if (i < totalCombos) {
+      setTimeout(processChunk, 0);
+    } else {
+      // Done — show top 10 results
+      topResults.sort((a, b) => b.daily_damage - a.daily_damage);
+      const best10 = topResults.slice(0, 10);
+
+      tbody.innerHTML = "";
+      for (const r of best10) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.daily_damage}</td>
+          <td>${r.totalCost}</td>
+          <td>${r.skills.attack}</td>
+          <td>${Math.round(r.skills.precision*100)}%</td>
+          <td>${Math.round(r.skills.critChance*100)}%</td>
+          <td>${Math.round(r.skills.critDamage*100)}%</td>
+          <td>${Math.round(r.skills.armor*100)}%</td>
+          <td>${Math.round(r.skills.dodge*100)}%</td>
+          <td>${r.skills.health}</td>
+          <td>${r.skills.hunger}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
   }
 
-  topResults.sort((a, b) => b.daily_damage - a.daily_damage);
-  const best10 = topResults.slice(0, 10);
-
-  tbody.innerHTML = "";
-  for (const r of best10) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.daily_damage}</td>
-      <td>${r.totalCost}</td>
-      <td>${r.skills.attack}</td>
-      <td>${(r.skills.precision*100).toFixed(1)}%</td>
-      <td>${(r.skills.critChance*100).toFixed(1)}%</td>
-      <td>${(r.skills.critDamage*100).toFixed(1)}%</td>
-      <td>${(r.skills.armor*100).toFixed(1)}%</td>
-      <td>${(r.skills.dodge*100).toFixed(1)}%</td>
-      <td>${r.skills.health}</td>
-      <td>${r.skills.hunger}</td>
-    `;
-    tbody.appendChild(tr);
-  }
-}
+  processChunk();
+};
 
 // --- Initialize dropdowns on page load ---
 document.addEventListener("DOMContentLoaded", () => {
