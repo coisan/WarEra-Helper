@@ -87,12 +87,12 @@ window.calcFightBuilds = function calcFightBuilds() {
 
   // --- Read equipment bonuses ---
   const weaponDmg = parseFloat(document.getElementById("weaponDmg").value || 0);
-  const weaponCritCh = parseFloat(document.getElementById("weaponCritCh").value || 0);
-  const helmetCritDmg = parseFloat(document.getElementById("helmetCritDmg").value || 0);
-  const chestArmor = parseFloat(document.getElementById("chestArmor").value || 0);
-  const pantsArmor = parseFloat(document.getElementById("pantsArmor").value || 0);
-  const bootsDodge = parseFloat(document.getElementById("bootsDodge").value || 0);
-  const glovesPrec = parseFloat(document.getElementById("glovesPrec").value || 0);
+  const weaponCritCh = parseFloat(document.getElementById("weaponCritCh").value/100 || 0);
+  const helmetCritDmg = parseFloat(document.getElementById("helmetCritDmg").value/100 || 0);
+  const chestArmor = parseFloat(document.getElementById("chestArmor").value/100 || 0);
+  const pantsArmor = parseFloat(document.getElementById("pantsArmor").value/100 || 0);
+  const bootsDodge = parseFloat(document.getElementById("bootsDodge").value/100 || 0);
+  const glovesPrec = parseFloat(document.getElementById("glovesPrec").value/100 || 0);
 
   const numSkills = 8;
   const numLevels = 11;
