@@ -285,6 +285,39 @@ select {
   gap: 2rem;
   margin-bottom: 1rem;
 }
+
+/* field-row: label column (fixed) + inputs column (flexible) */
+.field-row {
+  display: grid;
+  grid-template-columns: 200px 1fr; /* adjust 200px if you want a wider/narrower label column */
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.field-row label {
+  justify-self: end;   /* place label at the end of the first column */
+  padding-right: 8px;
+  white-space: nowrap; /* keep label text on one line if possible */
+}
+
+/* Group multiple inputs into a single inline block */
+.field-row .inputs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;     /* allow wrapping on narrow screens */
+}
+
+/* Inputs styling inside field-row */
+.field-row input,
+.field-row select {
+  min-width: 120px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 4px 6px;
+}
+
 fieldset.radiogroup {
   border: 1px solid var(--border-color, #444);
   border-radius: 8px;
