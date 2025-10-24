@@ -148,14 +148,14 @@ window.calcFightBuilds = function calcFightBuilds() {
         tr.innerHTML = `
           <td>${r.daily_damage}</td>
           <td>${r.totalCost}</td>
-          <td>${r.skills.attack}</td>
-          <td>${Math.round(r.skills.precision*100)}%</td>
-          <td>${Math.round(r.skills.critChance*100)}%</td>
-          <td>${Math.round(r.skills.critDamage*100)}%</td>
-          <td>${Math.round(r.skills.armor*100)}%</td>
-          <td>${Math.round(r.skills.dodge*100)}%</td>
-          <td>${r.skills.health}</td>
-          <td>${r.skills.hunger}</td>
+          <td>${skillValues.attack[r.combo[0]]}</td>
+          <td>${Math.round(skillValues.precision[r.combo[1]]*100)}%</td>
+          <td>${Math.round(skillValues.critChance[r.combo[2]]*100)}%</td>
+          <td>${Math.round(skillValues.critDamage[r.combo[3]]*100)}%</td>
+          <td>${Math.round(skillValues.armor[r.combo[4]]*100)}%</td>
+          <td>${Math.round(skillValues.dodge[r.combo[5]]*100)}%</td>
+          <td>${skillValues.health[r.combo[6]]}</td>
+          <td>${skillValues.hunger[r.combo[7]]}</td>
         `;
         tbody.appendChild(tr);
       }
