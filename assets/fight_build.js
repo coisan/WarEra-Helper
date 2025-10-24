@@ -47,6 +47,11 @@ function populateAmmos() {
 // ==============================
 
 window.calcFightBuilds = function () {
+  const tbody = document.querySelector("#skillsTable tbody");
+
+  // === Show progress message ===
+  tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds...</td></tr>";
+
   // === 1. Read all input values ===
   const spLimit = parseInt(document.getElementById("spInput").value) || 0;
   const regenValue = parseFloat(document.getElementById("regenSelect").value) || 0;
@@ -128,8 +133,9 @@ window.calcFightBuilds = function () {
   }
 
   // === 7. Sort and display results ===
-  const sorted = topResults.sort((a, b) => b.daily_damage - a.daily_damage).slice(0, 50);
-  const tbody = document.querySelector("#skillsTable tbody");
+  const sorted = topResults.sort((a, b) => b.daily_damage - a.daily_damage).slice(0, 10);
+
+  // Clear loading message
   tbody.innerHTML = "";
 
   for (const r of sorted) {
@@ -149,7 +155,7 @@ window.calcFightBuilds = function () {
     tbody.appendChild(tr);
   }
 
-  console.log("Calculation complete. Displaying top 50 results.");
+  console.log("Calculation complete. Displaying top 10 results.");
 };
 
 // ==============================
