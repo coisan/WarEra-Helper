@@ -47,9 +47,9 @@ function populateAmmo(){
 }
 
 // Main calculation using Web Worker
-window.calcFightBuilds=function(){
-  const tbody=document.querySelector("#skillsTable tbody");
-  tbody.innerHTML="<tr><td colspan='10'>Calculating best builds... 0%</td></tr>";
+window.calcFightBuilds = function() {
+  const tbody = document.querySelector("#skillsTable tbody");
+  tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds... 0% (estimating time...)</td></tr>";
 
   const spLimit       = clampInput("spInput",0,120);
   const regenValue    = parseFloat(document.getElementById("regenSelect").value);
@@ -62,16 +62,27 @@ window.calcFightBuilds=function(){
   const bootsDodge    = clampInput("bootsDodge",0,40)/100;
   const glovesPrec    = clampInput("glovesPrec",0,40)/100;
 
-  const worker=new Worker("assets/fight_build_worker.js");
+  const worker = new Worker("assets/fight_build_worker.js");
 
-  worker.onmessage=function(e){
-    if(e.data.progress!==undefined){
-      tbody.innerHTML=`<tr><td colspan='10'>Calculating best builds... ${e.data.progress}%</td></tr>`;
-    } else if(e.data.done){
-      tbody.innerHTML="";
-      e.data.results.forEach(r=>{
-        const tr=document.createElement("tr");
-        tr.innerHTML=`
+  let startTime = Date.now();
+
+  worker.onmessage = function(e) {
+    if (e.data.progress !== undefined) {
+      const percent = e.data.progress;
+      const elapsed = (Date.now() - startTime)/1000; // seconds
+      const estTotal = elapsed / (percent/100);
+      const remaining = Math.max(0, estTotal - elapsed);
+      
+      // Format remaining as mm:ss
+      const min = Math.floor(remaining/60);
+      const sec = Math.floor(remaining%60).toString().padStart(2,'0');
+
+      tbody.innerHTML = `<tr><td colspan='10'>Calculating best builds... ${percent}% (ETA: ${min}:${sec})</td></tr>`;
+    } else if (e.data.done) {
+      tbody.innerHTML = "";
+      e.data.results.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
           <td>${r.daily_damage}</td>
           <td>${r.totalCost}</td>
           <td>${skillValues.attack[r.combo[0]]}</td>
@@ -89,7 +100,7 @@ window.calcFightBuilds=function(){
     }
   };
 
-  worker.postMessage({spLimit,regenValue,ammoValue,weaponDmg,weaponCritCh,helmetCritDmg,chestArmor,pantsArmor,bootsDodge,glovesPrec});
+  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec});
 };
 
 // Initialize dropdowns
