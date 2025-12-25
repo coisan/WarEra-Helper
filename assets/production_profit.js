@@ -36,12 +36,8 @@ async function getBestProductionBonuses() {
 }
 
 window.calculateAllProfitabilities = function calculateAllProfitabilities() {
-  const bonus = parseFloat(document.getElementById('bonusInput').value);
+  const bonus = 20; //placeholder fixed value
   const salary = parseFloat(document.getElementById('salaryInput').value);
-  if (isNaN(bonus)) {
-    alert ("Please enter the production bonus");
-    return;
-  }
 
   const tbody = document.querySelector('#profitTable tbody');
   tbody.innerHTML = '';
