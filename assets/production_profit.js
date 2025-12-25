@@ -1,10 +1,11 @@
 let prices = {};
+let bestBonuses = {};
 import {itemDisplayOrder, recipes, makeTableSortable} from './config.js';
 
 async function loadPrices() {
   const res = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices");
   const data = await res.json();
-  prices =  data.result?.data ?? [];
+  return data.result?.data ?? [];
 }
 
 async function getBestProductionBonuses() {
@@ -31,77 +32,113 @@ async function getBestProductionBonuses() {
       };
     }
   }
-
   return bestByItem;
 }
 
-window.calculateAllProfitabilities = function calculateAllProfitabilities() {
-  const bonus = 20; //placeholder fixed value
-  const salary = parseFloat(document.getElementById('salaryInput').value);
-
+function renderProfitTable() {
   const tbody = document.querySelector('#profitTable tbody');
   tbody.innerHTML = '';
 
-  for (const {
-      id,
-      label,
-      class: colorClass
-    }
-    of itemDisplayOrder) {
-    if (!prices[id] || id == "case1") continue;
+  for (const { id, label, class: colorClass } of itemDisplayOrder) {
+    if (!prices[id] || id === "case1") continue;
+
     const sellPrice = prices[id];
-    const recipe = recipes[id];
+    const best = bestBonuses[id];
 
     const row = document.createElement('tr');
+    row.dataset.itemId = id; // important
+
+    // Item
     const itemCell = document.createElement('td');
     itemCell.className = colorClass;
-    const boldLabel = document.createElement('b');
-    boldLabel.textContent = label;
-    itemCell.appendChild(boldLabel);
+    itemCell.innerHTML = `<b>${label}</b>`;
     row.appendChild(itemCell);
 
+    // Price
     const priceCell = document.createElement('td');
     priceCell.textContent = sellPrice.toFixed(3);
     row.appendChild(priceCell);
 
-    const marketCell = document.createElement('td');
+    // Bonus input
+    const bonusCell = document.createElement('td');
+    const bonusInput = document.createElement('input');
+    bonusInput.type = 'number';
+    bonusInput.step = '0.01';
+    bonusInput.value = best?.value ?? 0;
+    bonusInput.className = 'bonus-input';
+    bonusCell.appendChild(bonusInput);
+    row.appendChild(bonusCell);
+
+    // Country
+    const countryCell = document.createElement('td');
+    countryCell.textContent = best?.country ?? '—';
+    row.appendChild(countryCell);
+
+    // Market result (empty)
+    row.appendChild(document.createElement('td'));
+
+    // Production result (empty)
+    row.appendChild(document.createElement('td'));
+
+    tbody.appendChild(row);
+  }
+
+  document.getElementById("profitTable").hidden = false;
+}
+
+window.calculateAllProfitabilities = function calculateAllProfitabilities() {
+  const salary = parseFloat(document.getElementById('salaryInput').value);
+  const rows = document.querySelectorAll('#profitTable tbody tr');
+
+  for (const row of rows) {
+    const itemId = row.dataset.itemId;
+    const recipe = recipes[itemId];
+
+    const bonusInput = row.querySelector('.bonus-input');
+    const bonus = parseFloat(bonusInput.value) || 0;
+
+    const marketCell = row.children[4];
+    const prodCell = row.children[5];
+
+    // MARKET
     if (Object.keys(recipe.materials).length > 0) {
-      const marketProfit = calculateProfitability(id, bonus, salary, 'market');
+      const marketProfit = calculateProfitability(itemId, bonus, salary, 'market');
+
       if (isNaN(salary)) {
         marketCell.textContent = marketProfit !== null ? marketProfit.toFixed(3) : '—';
-      }
-      else {
-        marketCell.textContent = marketProfit !== null ? (marketProfit * 100).toFixed(2) + '%' : '—';
+      } else {
+        marketCell.textContent = marketProfit !== null
+          ? (marketProfit * 100).toFixed(2) + '%'
+          : '—';
         marketCell.className = marketProfit > 0 ? 'positive' : 'negative';
       }
     } else {
       marketCell.textContent = '—';
     }
-    row.appendChild(marketCell);
 
-    const prodProfit = calculateProfitability(id, bonus, salary, 'production');
-    const prodCell = document.createElement('td');
+    // PRODUCTION
+    const prodProfit = calculateProfitability(itemId, bonus, salary, 'production');
     if (isNaN(salary)) {
       prodCell.textContent = prodProfit !== null ? prodProfit.toFixed(3) : '—';
-    }
-    else {
-      prodCell.textContent = prodProfit !== null ? (prodProfit * 100).toFixed(2) + '%' : '—';
+    } else {
+      prodCell.textContent = prodProfit !== null
+        ? (prodProfit * 100).toFixed(2) + '%'
+        : '—';
       prodCell.className = prodProfit > 0 ? 'positive' : 'negative';
     }
-    row.appendChild(prodCell);
-
-    tbody.appendChild(row);
-    if (isNaN(salary)) {
-      document.querySelector("#profitTable thead th:nth-child(3)").textContent = "Value per pp if buying materials";
-      document.querySelector("#profitTable thead th:nth-child(4)").textContent = "Value per pp if producing materials";
-    }
-    else {
-      document.querySelector("#profitTable thead th:nth-child(3)").textContent = "Profit if buying materials";
-      document.querySelector("#profitTable thead th:nth-child(4)").textContent = "Profit if producing materials";
-    }
-    document.getElementById("profitTable").hidden = false;
   }
-}
+
+  // Update headers
+  document.querySelector("#profitTable thead th:nth-child(5)").textContent =
+    isNaN(salary)
+      ? "Value per pp if buying materials"
+      : "Profit if buying materials";
+
+  document.querySelector("#profitTable thead th:nth-child(6)").textContent =
+    isNaN(salary)
+      ? "Value per pp if producing materials"
+      : "Profit if producing materials";
+};
 
 function calculateProfitability(item, bonus, salary, source) {
   const recipe = recipes[item];
@@ -163,6 +200,11 @@ function calculatePPTotal(item) {
   return totalPP;
 }
 
-loadPrices();
-getBestProductionBonuses();
-makeTableSortable("profitTable");
+async function init() {
+  prices = await loadPrices();
+  bestBonuses = await getBestProductionBonuses();
+  renderProfitTable();
+  makeTableSortable("profitTable");
+}
+
+init();
