@@ -63,7 +63,7 @@ function renderProfitTable() {
     const bonusCell = document.createElement('td');
     const bonusInput = document.createElement('input');
     bonusInput.type = 'number';
-    bonusInput.step = '0.01';
+    bonusInput.step = '0.5';
     bonusInput.value = best?.value ?? 0;
     bonusInput.className = 'bonus-input';
     bonusCell.appendChild(bonusInput);
