@@ -17,10 +17,6 @@
   </script>
 
   <div class="form-group">
-    <label for="bonusInput">Production bonus (%):</label>
-    <input type="number" id="bonusInput" placeholder="ex. 45">
-  </div>
-  <div class="form-group">
     <label for="salaryInput">Salary per PP (leave empty to calculate pp value with no employees):</label>
     <input type="number" id="salaryInput" placeholder="ex. 0.1">
   </div>
@@ -35,8 +31,10 @@
         <tr>
           <th data-column="0" class="sortable">Item</th>
           <th data-column="1" class="sortable">Sell price</th>
-          <th data-column="2" class="sortable"></th>
-          <th data-column="3" class="sortable"></th>
+          <th data-column="2" class="sortable">Production bonus (%)</th>
+          <th data-column="3" class="sortable">Country</th>
+          <th data-column="4" class="sortable"></th>
+          <th data-column="5" class="sortable"></th>
         </tr>
       </thead>
       <tbody>
