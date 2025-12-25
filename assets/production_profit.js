@@ -7,6 +7,34 @@ async function loadPrices() {
   prices =  data.result?.data ?? [];
 }
 
+async function getBestProductionBonuses() {
+  const res = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
+  const data = await res.json();
+  const countries = data.result?.data ?? [];
+
+  const bestByItem = {};
+
+  for (const country of countries) {
+    const item = country.specializedItem;
+    const bonus = country?.rankings?.countryProductionBonus?.value;
+
+    if (!item || typeof bonus !== "number") continue;
+
+    // Initialize or replace if this country has a higher bonus
+    if (
+      !bestByItem[item] ||
+      bonus > bestByItem[item].value
+    ) {
+      bestByItem[item] = {
+        value: bonus,
+        country: country.name ?? country.id ?? "Unknown"
+      };
+    }
+  }
+
+  return bestByItem;
+}
+
 window.calculateAllProfitabilities = function calculateAllProfitabilities() {
   const bonus = parseFloat(document.getElementById('bonusInput').value);
   const salary = parseFloat(document.getElementById('salaryInput').value);
@@ -140,4 +168,5 @@ function calculatePPTotal(item) {
 }
 
 loadPrices();
+getBestProductionBonuses();
 makeTableSortable("profitTable");
