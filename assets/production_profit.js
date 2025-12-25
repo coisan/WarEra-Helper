@@ -1,11 +1,16 @@
 let prices = {};
 let bestBonuses = {};
-import {itemDisplayOrder, recipes, makeTableSortable} from './config.js';
+
+import { itemDisplayOrder, recipes, makeTableSortable } from './config.js';
+
+/* =======================
+   DATA LOADING
+======================= */
 
 async function loadPrices() {
   const res = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices");
   const data = await res.json();
-  return data.result?.data ?? [];
+  prices = data.result?.data ?? {};
 }
 
 async function getBestProductionBonuses() {
@@ -21,19 +26,20 @@ async function getBestProductionBonuses() {
 
     if (!item || typeof bonus !== "number") continue;
 
-    // Initialize or replace if this country has a higher bonus
-    if (
-      !bestByItem[item] ||
-      bonus > bestByItem[item].value
-    ) {
+    if (!bestByItem[item] || bonus > bestByItem[item].value) {
       bestByItem[item] = {
         value: bonus,
         country: country.name ?? country.id ?? "Unknown"
       };
     }
   }
+
   return bestByItem;
 }
+
+/* =======================
+   TABLE RENDERING
+======================= */
 
 function renderProfitTable() {
   const tbody = document.querySelector('#profitTable tbody');
@@ -46,7 +52,7 @@ function renderProfitTable() {
     const best = bestBonuses[id];
 
     const row = document.createElement('tr');
-    row.dataset.itemId = id; // important
+    row.dataset.itemId = id;
 
     // Item
     const itemCell = document.createElement('td');
@@ -54,7 +60,7 @@ function renderProfitTable() {
     itemCell.innerHTML = `<b>${label}</b>`;
     row.appendChild(itemCell);
 
-    // Price
+    // Sell price
     const priceCell = document.createElement('td');
     priceCell.textContent = sellPrice.toFixed(3);
     row.appendChild(priceCell);
@@ -64,8 +70,8 @@ function renderProfitTable() {
     const bonusInput = document.createElement('input');
     bonusInput.type = 'number';
     bonusInput.step = '0.5';
-    bonusInput.value = best?.value ?? 0;
     bonusInput.className = 'bonus-input';
+    bonusInput.value = best?.value ?? 0;
     bonusCell.appendChild(bonusInput);
     row.appendChild(bonusCell);
 
@@ -86,23 +92,37 @@ function renderProfitTable() {
   document.getElementById("profitTable").hidden = false;
 }
 
+/* =======================
+   CALCULATION BUTTON
+======================= */
+
 window.calculateAllProfitabilities = function calculateAllProfitabilities() {
   const salary = parseFloat(document.getElementById('salaryInput').value);
   const rows = document.querySelectorAll('#profitTable tbody tr');
+
+  // Build bonus map from UI (calculation snapshot)
+  const bonusMap = {};
+  for (const row of rows) {
+    const itemId = row.dataset.itemId;
+    const bonusInput = row.querySelector('.bonus-input');
+    bonusMap[itemId] = parseFloat(bonusInput.value) || 0;
+  }
 
   for (const row of rows) {
     const itemId = row.dataset.itemId;
     const recipe = recipes[itemId];
 
-    const bonusInput = row.querySelector('.bonus-input');
-    const bonus = parseFloat(bonusInput.value) || 0;
-
     const marketCell = row.children[4];
     const prodCell = row.children[5];
 
-    // MARKET
+    /* ---- MARKET ---- */
     if (Object.keys(recipe.materials).length > 0) {
-      const marketProfit = calculateProfitability(itemId, bonus, salary, 'market');
+      const marketProfit = calculateProfitability(
+        itemId,
+        bonusMap,
+        salary,
+        'market'
+      );
 
       if (isNaN(salary)) {
         marketCell.textContent = marketProfit !== null ? marketProfit.toFixed(3) : '—';
@@ -116,8 +136,14 @@ window.calculateAllProfitabilities = function calculateAllProfitabilities() {
       marketCell.textContent = '—';
     }
 
-    // PRODUCTION
-    const prodProfit = calculateProfitability(itemId, bonus, salary, 'production');
+    /* ---- PRODUCTION ---- */
+    const prodProfit = calculateProfitability(
+      itemId,
+      bonusMap,
+      salary,
+      'production'
+    );
+
     if (isNaN(salary)) {
       prodCell.textContent = prodProfit !== null ? prodProfit.toFixed(3) : '—';
     } else {
@@ -140,47 +166,55 @@ window.calculateAllProfitabilities = function calculateAllProfitabilities() {
       : "Profit if producing materials";
 };
 
-function calculateProfitability(item, bonus, salary, source) {
+/* =======================
+   PROFIT CALCULATION
+======================= */
+
+function calculateProfitability(item, bonusMap, salary, source) {
   const recipe = recipes[item];
   const sellPrice = prices[item];
   if (!recipe || !sellPrice || sellPrice <= 0) return null;
 
+  const bonus = bonusMap[item] ?? 0;
+
+  // No materials
   if (Object.keys(recipe.materials).length === 0) {
     const pp = recipe.pp / (1 + bonus / 100);
     if (isNaN(salary)) {
       return sellPrice / pp;
-    }
-    else {
+    } else {
       const cost = pp * salary;
       return (sellPrice - cost) / cost;
     }
   }
 
+  // MARKET
   if (source === 'market') {
     let matCost = 0;
     for (const [mat, qty] of Object.entries(recipe.materials)) {
       if (!prices[mat]) return null;
       matCost += prices[mat] * qty;
     }
+
     const pp = recipe.pp / (1 + bonus / 100);
+
     if (isNaN(salary)) {
       return (sellPrice - matCost) / pp;
-    }
-    else {
+    } else {
       const cost = matCost + pp * salary;
       return (sellPrice - cost) / cost;
     }
   }
 
+  // PRODUCTION (bonus-aware per step)
   if (source === 'production') {
-    const totalPP = calculatePPTotal(item, bonus);
+    const totalPP = calculatePPTotalWithBonuses(item, bonusMap);
     if (totalPP === null) return null;
-    const pp = totalPP / (1 + bonus / 100);
+
     if (isNaN(salary)) {
-      return sellPrice / pp;
-    }
-    else {
-      const cost = pp * salary;
+      return sellPrice / totalPP;
+    } else {
+      const cost = totalPP * salary;
       return (sellPrice - cost) / cost;
     }
   }
@@ -188,20 +222,32 @@ function calculateProfitability(item, bonus, salary, source) {
   return null;
 }
 
-function calculatePPTotal(item) {
+/* =======================
+   BONUS-AWARE PP RECURSION
+======================= */
+
+function calculatePPTotalWithBonuses(item, bonusMap) {
   const recipe = recipes[item];
   if (!recipe) return null;
-  let totalPP = recipe.pp;
+
+  const bonus = bonusMap[item] ?? 0;
+  let totalPP = recipe.pp / (1 + bonus / 100);
+
   for (const [mat, qty] of Object.entries(recipe.materials)) {
-    const subPP = calculatePPTotal(mat);
+    const subPP = calculatePPTotalWithBonuses(mat, bonusMap);
     if (subPP === null) return null;
     totalPP += subPP * qty;
   }
+
   return totalPP;
 }
 
+/* =======================
+   INIT
+======================= */
+
 async function init() {
-  prices = await loadPrices();
+  await loadPrices();
   bestBonuses = await getBestProductionBonuses();
   renderProfitTable();
   makeTableSortable("profitTable");
