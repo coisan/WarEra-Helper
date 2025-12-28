@@ -64,7 +64,7 @@ function evaluateCost(skills, weapon_price, armor_price, ammo_price, food_price)
 }
 
 // Worker listener
-self.onmessage = function(e) {
+self.onmessage = async function(e) {
   const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, weaponQuality, armorQuality } = e.data;
 
   const numSkills = 8, numLevels = 11;
