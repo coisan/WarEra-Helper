@@ -76,26 +76,27 @@ self.onmessage = async function(e) {
   prices = await loadPrices();
   const weapon_price = (craftTable[weaponQuality].scraps * prices[scraps] + craftTable[weaponQuality].steel * prices[steel]);
   const armor_price = 5 * (craftTable[armorQuality].scraps * prices[scraps] + craftTable[armorQuality].steel * prices[steel]);
+  let ammo_price = 0, food_price = 0;
   switch (ammoValue) {
       case 0.1:
-        const ammo_price = prices[lightAmmo];
+        ammo_price = prices[lightAmmo];
         break;
       case 0.2:
-        const ammo_price = prices[ammo];
+        ammo_price = prices[ammo];
         break;
       case 0.4:
-        const ammo_price = prices[heavyAmmo];
+        ammo_price = prices[heavyAmmo];
         break;
     }
     switch (regenValue) {
       case 10:
-        const food_price = prices[bread];
+        food_price = prices[bread];
         break;
       case 20:
-        const food_price = prices[steak];
+        food_price = prices[steak];
         break;
       case 30:
-        const food_price = prices[cookedFish];
+        food_price = prices[cookedFish];
         break;
     }
 
