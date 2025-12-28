@@ -50,7 +50,7 @@ function evaluateDamage(skills, regenValue, ammoValue) {
   return attacks * Math.round((miss_damage + normal_damage + crit_damage) * (1+ammoValue));
 }
 
-function evaluateCost(skills, weapon_price, armor_price, ammo_price, food_price) {
+function evaluateCost(skills, regenValue, weapon_price, armor_price, ammo_price, food_price) {
   const daily_health = skills.health*2.4 + Math.floor(skills.hunger*2.4)*regenValue;
   const attacks = Math.floor(daily_health / (10*(1-skills.armor)));
   const dodged_attacks = Math.floor(attacks * skills.dodge);
@@ -119,7 +119,7 @@ self.onmessage = async function(e) {
       };
 
       const daily_damage = evaluateDamage(skills, regenValue, ammoValue);
-      const daily_cost = evaluateCost(skills, weapon_price, armor_price, ammo_price, food_price);
+      const daily_cost = evaluateCost(skills, regenValue, weapon_price, armor_price, ammo_price, food_price);
       topResults.push({ combo, totalCost, daily_damage, daily_cost });
     }
 
