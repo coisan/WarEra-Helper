@@ -33,30 +33,16 @@
   </div>
 
   <div class="row-flex">
-    <label for="weaponInput">Weapon (damage, crit. chance):</label>
-    <input id="weaponDmg" type="number" step="1"></input>
-    <input id="weaponCritCh" type="number" step="1"></input>
+    <div class="form-group">
+      <label for="weaponInput">Select weapon quality:</label>
+      <select id="weaponSelect"></select>
+    </div>
+    <div class="form-group">
+      <label for="armorInput">Select armor quality:</label>
+      <select id="armorSelect"></select>
+    </div>
   </div>
-  <div class="row-flex">
-    <label for="helmetInput">Helmet (crit. damage):</label>
-    <input id="helmetCritDmg" type="number" step="1"></input>
-  </div>
-  <div class="row-flex">
-    <label for="chestInput">Chest (armor):</label>
-    <input id="chestArmor" type="number" step="1"></input>
-  </div>
-  <div class="row-flex">
-    <label for="pantsInput">Pants (armor):</label>
-    <input id="pantsArmor" type="number" step="1"></input>
-  </div>
-  <div class="row-flex">
-    <label for="bootsInput">Boots (dodge):</label>
-    <input id="bootsDodge" type="number" step="1"></input>
-  </div>
-  <div class="row-flex">
-    <label for="glovesInput">Gloves (precision):</label>
-    <input id="glovesPrec" type="number" step="1"></input>
-  </div>
+  
   <button onclick="calcFightBuilds()">Generate</button>
 
   <div class="table-responsive">
@@ -64,15 +50,16 @@
       <thead>
         <tr>
           <th data-column="0" class="sortable">Daily Damage</th>
-          <th data-column="1" class="sortable">Skill Points Cost</th>
-          <th data-column="2" class="sortable">Attack</th>
-          <th data-column="3" class="sortable">Precision</th>
-          <th data-column="4" class="sortable">Crit. chance</th>
-          <th data-column="5" class="sortable">Crit. damage</th>
-          <th data-column="6" class="sortable">Armor</th>
-          <th data-column="7" class="sortable">Dodge</th>
-          <th data-column="8" class="sortable">Health</th>
-          <th data-column="9" class="sortable">Hunger</th>
+          <th data-column="1" class="sortable">Daily Cost</th>
+          <th data-column="2" class="sortable">Skill Points Cost</th>
+          <th data-column="3" class="sortable">Attack</th>
+          <th data-column="4" class="sortable">Precision</th>
+          <th data-column="5" class="sortable">Crit. chance</th>
+          <th data-column="6" class="sortable">Crit. damage</th>
+          <th data-column="7" class="sortable">Armor</th>
+          <th data-column="8" class="sortable">Dodge</th>
+          <th data-column="9" class="sortable">Health</th>
+          <th data-column="10" class="sortable">Hunger</th>
         </tr>
       </thead>
       <tbody></tbody>
