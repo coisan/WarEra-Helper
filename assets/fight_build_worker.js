@@ -16,6 +16,15 @@ const skillValues = {
 
 const fight_costRow = [0,1,3,6,10,15,21,28,36,45,55];
 
+const craftTable = {
+  common:      { x: 6,    y: 1 },
+  uncommon:    { x: 18,   y: 2 },
+  rare:        { x: 54,   y: 4 },
+  epic:        { x: 162,  y: 8 },
+  legendary:   { x: 486,  y: 16 },
+  mythic:      { x: 1458, y: 32 }
+};
+
 function indexToCombo(index, numRows, numCols) {
   const combo = [];
   for (let i=0; i<numRows; i++) {
@@ -36,7 +45,7 @@ function evaluateDamage(skills, regenValue, ammoValue) {
 
 // Worker listener
 self.onmessage = function(e) {
-  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec } = e.data;
+  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, prices } = e.data;
 
   const numSkills = 8, numLevels = 11;
   const totalCombos = Math.pow(numLevels, numSkills);
@@ -63,7 +72,7 @@ self.onmessage = function(e) {
       };
 
       const daily_damage = evaluateDamage(skills, regenValue, ammoValue);
-      topResults.push({ combo, totalCost, daily_damage });
+      topResults.push({ combo, totalCost, daily_damage, daily_cost });
     }
 
     self.postMessage({ progress: Math.floor((i/totalCombos)*100) });
