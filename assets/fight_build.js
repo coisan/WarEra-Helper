@@ -81,7 +81,7 @@ function populateEquipment() {
 // Main calculation using Web Worker
 window.calcFightBuilds = function() {
   const tbody = document.querySelector("#skillsTable tbody");
-  tbody.innerHTML = "<tr><td colspan='10'>Calculating best builds... 0% (estimating time...)</td></tr>";
+  tbody.innerHTML = "<tr><td colspan='11'>Calculating best builds... 0% (estimating time...)</td></tr>";
 
   const spLimit       = clampInput("spInput",0,120);
   const regenValue    = parseFloat(document.getElementById("regenSelect").value);
