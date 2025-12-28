@@ -34,12 +34,6 @@ function clampInput(id,min,max){
   return value;
 }
 
-async function loadPrices() {
-  const res = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices");
-  const data = await res.json();
-  return data.result?.data ?? {};
-}
-
 // Populate dropdowns
 function populateRegens(){
   const regenSelect=document.getElementById("regenSelect");
@@ -139,7 +133,7 @@ window.calcFightBuilds = function() {
     }
   };
 
-  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, await loadPrices()});
+  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec});
 };
 
 // Initialize dropdowns
