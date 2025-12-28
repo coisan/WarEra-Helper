@@ -14,6 +14,24 @@ const skillValues = {
   hunger:     [4,5,6,7,8,9,10,11,12,13,14]
 };
 
+const craftTable = {
+  common:      { x: 6,    y: 1 },
+  uncommon:    { x: 18,   y: 2 },
+  rare:        { x: 54,   y: 4 },
+  epic:        { x: 162,  y: 8 },
+  legendary:   { x: 486,  y: 16 },
+  mythic:      { x: 1458, y: 32 }
+};
+
+const itemStats = {
+  common:      { wepDmg: 30, wepCrit: 0.03, helmCrit: 0.06, equipBonus: 0.03 },
+  uncommon:    { wepDmg: 55, wepCrit: 0.08, helmCrit: 0.16, equipBonus: 0.08 },
+  rare:        { wepDmg: 80, wepCrit: 0.13, helmCrit: 0.26, equipBonus: 0.13 },
+  epic:        { wepDmg: 110, wepCrit: 0.18, helmCrit: 0.36, equipBonus: 0.18 },
+  legendary:   { wepDmg: 145, wepCrit: 0.26, helmCrit: 0.51, equipBonus: 0.26 },
+  mythic:      { wepDmg: 240, wepCrit: 0.36, helmCrit: 0.71, equipBonus: 0.36 }
+}
+
 // Clamp & visually update inputs
 function clampInput(id,min,max){
   const input=document.getElementById(id);
@@ -23,6 +41,12 @@ function clampInput(id,min,max){
   if(value>max) value=max;
   input.value=value;
   return value;
+}
+
+async function loadPrices() {
+  const res = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices");
+  const data = await res.json();
+  return data.result?.data ?? {};
 }
 
 // Populate dropdowns
@@ -77,13 +101,13 @@ window.calcFightBuilds = function() {
   const spLimit       = clampInput("spInput",0,120);
   const regenValue    = parseFloat(document.getElementById("regenSelect").value);
   const ammoValue     = parseFloat(document.getElementById("ammoSelect").value);
-  const weaponDmg     = clampInput("weaponDmg",0,280);
-  const weaponCritCh  = clampInput("weaponCritCh",0,40)/100;
-  const helmetCritDmg = clampInput("helmetCritDmg",0,80)/100;
-  const chestArmor    = clampInput("chestArmor",0,40)/100;
-  const pantsArmor    = clampInput("pantsArmor",0,40)/100;
-  const bootsDodge    = clampInput("bootsDodge",0,40)/100;
-  const glovesPrec    = clampInput("glovesPrec",0,40)/100;
+  const weaponDmg     = itemStats[document.getElementById("weaponSelect").value].wepDmg;
+  const weaponCritCh  = itemStats[document.getElementById("weaponSelect").value].wepCrit;
+  const helmetCritDmg = itemStats[document.getElementById("armorSelect").value].helmCrit;
+  const chestArmor    = itemStats[document.getElementById("armorSelect").value].equipBonus;
+  const pantsArmor    = itemStats[document.getElementById("armorSelect").value].equipBonus;
+  const bootsDodge    = itemStats[document.getElementById("armorSelect").value].equipBonus;
+  const glovesPrec    = itemStats[document.getElementById("armorSelect").value].equipBonus;
 
   const worker = new Worker("assets/fight_build_worker.js");
 
@@ -107,6 +131,7 @@ window.calcFightBuilds = function() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${r.daily_damage}</td>
+          <td>${r.daily_cost}</td>
           <td>${r.totalCost}</td>
           <td>${skillValues.attack[r.combo[0]]}</td>
           <td>${Math.round(skillValues.precision[r.combo[1]]*100)}%</td>
@@ -123,7 +148,7 @@ window.calcFightBuilds = function() {
     }
   };
 
-  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec});
+  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, loadPrices()});
 };
 
 // Initialize dropdowns
