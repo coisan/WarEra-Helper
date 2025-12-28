@@ -14,15 +14,6 @@ const skillValues = {
   hunger:     [4,5,6,7,8,9,10,11,12,13,14]
 };
 
-const craftTable = {
-  common:      { x: 6,    y: 1 },
-  uncommon:    { x: 18,   y: 2 },
-  rare:        { x: 54,   y: 4 },
-  epic:        { x: 162,  y: 8 },
-  legendary:   { x: 486,  y: 16 },
-  mythic:      { x: 1458, y: 32 }
-};
-
 const itemStats = {
   common:      { wepDmg: 30, wepCrit: 0.03, helmCrit: 0.06, equipBonus: 0.03 },
   uncommon:    { wepDmg: 55, wepCrit: 0.08, helmCrit: 0.16, equipBonus: 0.08 },
