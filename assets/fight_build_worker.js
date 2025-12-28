@@ -65,7 +65,7 @@ function evaluateCost(skills, weapon_price, armor_price, ammo_price, food_price)
 
 // Worker listener
 self.onmessage = async function(e) {
-  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, weaponQuality, armorQuality } = e.data;
+  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, weaponQual, armorQual } = e.data;
 
   const numSkills = 8, numLevels = 11;
   const totalCombos = Math.pow(numLevels, numSkills);
@@ -74,8 +74,8 @@ self.onmessage = async function(e) {
   const chunkSize = 50000;
 
   prices = await loadPrices();
-  const weapon_price = (craftTable[weaponQuality].scraps * prices[scraps] + craftTable[weaponQuality].steel * prices[steel]);
-  const armor_price = 5 * (craftTable[armorQuality].scraps * prices[scraps] + craftTable[armorQuality].steel * prices[steel]);
+  const weapon_price = (craftTable[weaponQual].scraps * prices[scraps] + craftTable[weaponQual].steel * prices[steel]);
+  const armor_price = 5 * (craftTable[armorQual].scraps * prices[scraps] + craftTable[armorQual].steel * prices[steel]);
   let ammo_price = 0, food_price = 0;
   switch (ammoValue) {
       case 0.1:
