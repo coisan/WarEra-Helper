@@ -74,29 +74,29 @@ self.onmessage = async function(e) {
   const chunkSize = 50000;
 
   prices = await loadPrices();
-  const weapon_price = (craftTable[weaponQual].scraps * prices[scraps] + craftTable[weaponQual].steel * prices[steel]);
-  const armor_price = 5 * (craftTable[armorQual].scraps * prices[scraps] + craftTable[armorQual].steel * prices[steel]);
+  const weapon_price = (craftTable[weaponQual].scraps * prices['scraps'] + craftTable[weaponQual].steel * prices['steel']);
+  const armor_price = 5 * (craftTable[armorQual].scraps * prices['scraps'] + craftTable[armorQual].steel * prices['steel']);
   let ammo_price = 0, food_price = 0;
   switch (ammoValue) {
       case 0.1:
-        ammo_price = prices[lightAmmo];
+        ammo_price = prices['lightAmmo'];
         break;
       case 0.2:
-        ammo_price = prices[ammo];
+        ammo_price = prices['ammo'];
         break;
       case 0.4:
-        ammo_price = prices[heavyAmmo];
+        ammo_price = prices['heavyAmmo'];
         break;
     }
     switch (regenValue) {
       case 10:
-        food_price = prices[bread];
+        food_price = prices['bread'];
         break;
       case 20:
-        food_price = prices[steak];
+        food_price = prices['steak'];
         break;
       case 30:
-        food_price = prices[cookedFish];
+        food_price = prices['cookedFish'];
         break;
     }
 
