@@ -118,7 +118,7 @@ window.calcFightBuilds = function() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${r.daily_damage}</td>
-          <td>${r.daily_cost.to_fixed(1)}</td>
+          <td>${r.daily_cost.toFixed(1)}</td>
           <td>${r.totalCost}</td>
           <td>${skillValues.attack[r.combo[0]]}</td>
           <td>${Math.round(skillValues.precision[r.combo[1]]*100)}%</td>
