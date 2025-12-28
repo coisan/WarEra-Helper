@@ -127,8 +127,40 @@ self.onmessage = async function(e) {
 
     if (i < totalCombos) setTimeout(processChunk,0);
     else {
+      // Instead of posting the top 10 by damage, select the top 20% by daily_damage,
+      // split that subset into 3 cost brackets and take the top 5 by damage from each bracket.
+      if (topResults.length === 0) {
+        self.postMessage({ done: true, results: [] });
+        return;
+      }
+
+      // Sort descending by damage
       topResults.sort((a,b)=>b.daily_damage - a.daily_damage);
-      self.postMessage({ done:true, results: topResults.slice(0,10) });
+
+      // Top 20% cutoff (at least 1)
+      const cutoff = Math.max(1, Math.floor(topResults.length * 0.2));
+      const topTwenty = topResults.slice(0, cutoff);
+
+      // Compute cost thresholds (tertiles) from the top20 cost distribution
+      const costs = topTwenty.map(r => r.daily_cost).sort((a,b)=>a-b);
+      const n = costs.length;
+      const t1 = costs[Math.floor(n/3)] ?? costs[0];
+      const t2 = costs[Math.floor(2*n/3)] ?? costs[n-1];
+
+      // Partition into three brackets by daily_cost
+      const lowBracket = topTwenty.filter(r => r.daily_cost <= t1)
+        .sort((a,b)=>b.daily_damage - a.daily_damage)
+        .slice(0,5);
+      const midBracket = topTwenty.filter(r => r.daily_cost > t1 && r.daily_cost <= t2)
+        .sort((a,b)=>b.daily_damage - a.daily_damage)
+        .slice(0,5);
+      const highBracket = topTwenty.filter(r => r.daily_cost > t2)
+        .sort((a,b)=>b.daily_damage - a.daily_damage)
+        .slice(0,5);
+
+      const finalResults = [...lowBracket, ...midBracket, ...highBracket];
+
+      self.postMessage({ done:true, results: finalResults });
     }
   }
 
