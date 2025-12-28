@@ -1,7 +1,7 @@
 // =========================
 // fight_build_worker.js
 // =========================
-
+let prices = {};
 // Skill data (values for levels 0–10)
 const skillValues = {
   attack:     [100,120,140,160,180,200,220,240,260,280,300],
@@ -25,6 +25,12 @@ const craftTable = {
   mythic:      { x: 1458, y: 32 }
 };
 
+async function loadPrices() {
+  const res = await fetch("https://api2.warera.io/trpc/itemTrading.getPrices");
+  const data = await res.json();
+  return data.result?.data ?? {};
+}
+
 function indexToCombo(index, numRows, numCols) {
   const combo = [];
   for (let i=0; i<numRows; i++) {
@@ -45,13 +51,15 @@ function evaluateDamage(skills, regenValue, ammoValue) {
 
 // Worker listener
 self.onmessage = function(e) {
-  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, prices } = e.data;
+  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec } = e.data;
 
   const numSkills = 8, numLevels = 11;
   const totalCombos = Math.pow(numLevels, numSkills);
   const topResults = [];
   let i = 0;
   const chunkSize = 50000;
+
+  prices = await loadPrices();
 
   function processChunk() {
     const end = Math.min(i + chunkSize, totalCombos);
