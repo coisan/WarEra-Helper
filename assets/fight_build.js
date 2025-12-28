@@ -93,6 +93,8 @@ window.calcFightBuilds = function() {
   const pantsArmor    = itemStats[document.getElementById("armorSelect").value].equipBonus;
   const bootsDodge    = itemStats[document.getElementById("armorSelect").value].equipBonus;
   const glovesPrec    = itemStats[document.getElementById("armorSelect").value].equipBonus;
+  const weaponQual    = document.getElementById("weaponSelect").value;
+  const armorQual     = document.getElementById("armorSelect").value;
 
   const worker = new Worker("assets/fight_build_worker.js");
 
@@ -133,7 +135,7 @@ window.calcFightBuilds = function() {
     }
   };
 
-  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, document.getElementById("weaponSelect").value, document.getElementById("armorSelect").value});
+  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, weaponQual, armorQual});
 };
 
 // Initialize dropdowns
