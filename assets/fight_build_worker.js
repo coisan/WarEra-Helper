@@ -17,12 +17,12 @@ const skillValues = {
 const fight_costRow = [0,1,3,6,10,15,21,28,36,45,55];
 
 const craftTable = {
-  common:      { x: 6,    y: 1 },
-  uncommon:    { x: 18,   y: 2 },
-  rare:        { x: 54,   y: 4 },
-  epic:        { x: 162,  y: 8 },
-  legendary:   { x: 486,  y: 16 },
-  mythic:      { x: 1458, y: 32 }
+  common:      { scraps: 6,    steel: 1 },
+  uncommon:    { scraps: 18,   steel: 2 },
+  rare:        { scraps: 54,   steel: 4 },
+  epic:        { scraps: 162,  steel: 8 },
+  legendary:   { scraps: 486,  steel: 16 },
+  mythic:      { scraps: 1458, steel: 32 }
 };
 
 async function loadPrices() {
@@ -46,12 +46,26 @@ function evaluateDamage(skills, regenValue, ammoValue) {
   const miss_damage = skills.attack * (1-skills.precision) * 0.5;
   const normal_damage = skills.attack * skills.precision * (1-skills.critChance);
   const crit_damage = skills.attack * skills.precision * skills.critChance * (1+skills.critDamage);
+  
   return attacks * Math.round((miss_damage + normal_damage + crit_damage) * (1+ammoValue));
+}
+
+function evaluateCost(skills, weapon_price, armor_price, ammo_price, food_price) {
+  const daily_health = skills.health*2.4 + Math.floor(skills.hunger*2.4)*regenValue;
+  const attacks = Math.floor(daily_health / (10*(1-skills.armor)));
+  const dodged_attacks = Math.floor(attacks * skills.dodge);
+
+  const food_cost = Math.floor(skills.hunger*2.4) * food_price;
+  const ammo_cost = (attacks + dodged_attacks) * ammo_price;
+  const weapon_cost = (attacks + dodged_attacks) * (weapon_price / 100);
+  const armor_cost = attacks * (armor_price / 100);
+
+  return food_cost + ammo_cost + weapon_cost + armor_cost;
 }
 
 // Worker listener
 self.onmessage = function(e) {
-  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec } = e.data;
+  const { spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, weaponQuality, armorQuality } = e.data;
 
   const numSkills = 8, numLevels = 11;
   const totalCombos = Math.pow(numLevels, numSkills);
@@ -60,6 +74,30 @@ self.onmessage = function(e) {
   const chunkSize = 50000;
 
   prices = await loadPrices();
+  const weapon_price = (craftTable[weaponQuality].scraps * prices[scraps] + craftTable[weaponQuality].steel * prices[steel]);
+  const armor_price = 5 * (craftTable[armorQuality].scraps * prices[scraps] + craftTable[armorQuality].steel * prices[steel]);
+  switch (ammoValue) {
+      case 0.1:
+        const ammo_price = prices[lightAmmo];
+        break;
+      case 0.2:
+        const ammo_price = prices[ammo];
+        break;
+      case 0.4:
+        const ammo_price = prices[heavyAmmo];
+        break;
+    }
+    switch (regenValue) {
+      case 10:
+        const food_price = prices[bread];
+        break;
+      case 20:
+        const food_price = prices[steak];
+        break;
+      case 30:
+        const food_price = prices[cookedFish];
+        break;
+    }
 
   function processChunk() {
     const end = Math.min(i + chunkSize, totalCombos);
@@ -80,6 +118,7 @@ self.onmessage = function(e) {
       };
 
       const daily_damage = evaluateDamage(skills, regenValue, ammoValue);
+      const daily_cost = evaluateCost(skills, weapon_price, armor_price, ammo_price, food_price);
       topResults.push({ combo, totalCost, daily_damage, daily_cost });
     }
 
