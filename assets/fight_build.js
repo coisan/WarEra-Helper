@@ -133,7 +133,7 @@ window.calcFightBuilds = function() {
     }
   };
 
-  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec});
+  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, document.getElementById("weaponSelect").value, document.getElementById("armorSelect").value});
 };
 
 // Initialize dropdowns
