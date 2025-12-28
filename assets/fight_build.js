@@ -49,7 +49,7 @@ function populateAmmo(){
   const ammoSelect=document.getElementById("ammoSelect");
   [{value:"0.1",text:"Light ammo (10%)"},
    {value:"0.2",text:"Ammo (20%)"},
-   {value:"0.3",text:"Heavy ammo (30%)"}]
+   {value:"0.4",text:"Heavy ammo (40%)"}]
   .forEach(({value,text})=>{
     const opt=document.createElement("option"); opt.value=value; opt.textContent=text; ammoSelect.appendChild(opt);
   });
