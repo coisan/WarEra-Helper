@@ -139,7 +139,7 @@ window.calcFightBuilds = function() {
     }
   };
 
-  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, loadPrices()});
+  worker.postMessage({spLimit, regenValue, ammoValue, weaponDmg, weaponCritCh, helmetCritDmg, chestArmor, pantsArmor, bootsDodge, glovesPrec, await loadPrices()});
 };
 
 // Initialize dropdowns
