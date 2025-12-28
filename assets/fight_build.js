@@ -46,6 +46,29 @@ function populateAmmo(){
   });
 }
 
+function populateEquipment() {
+  const weaponSelect = document.getElementById("weaponSelect");
+  const armorSelect  = document.getElementById("armorSelect");
+
+  const options = [
+    { value: "common",    text: "Common" },
+    { value: "uncommon",  text: "Uncommon" },
+    { value: "rare",      text: "Rare" },
+    { value: "epic",      text: "Epic" },
+    { value: "legendary", text: "Legendary" },
+    { value: "mythic",    text: "Mythic" }
+  ];
+
+  [weaponSelect, armorSelect].forEach(select => {
+    options.forEach(({ value, text }) => {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = text;
+      select.appendChild(opt);
+    });
+  });
+}
+
 // Main calculation using Web Worker
 window.calcFightBuilds = function() {
   const tbody = document.querySelector("#skillsTable tbody");
@@ -107,4 +130,5 @@ window.calcFightBuilds = function() {
 document.addEventListener("DOMContentLoaded",()=>{
   populateRegens();
   populateAmmo();
+  populateEquipment();
 });
