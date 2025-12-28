@@ -137,11 +137,11 @@ self.onmessage = async function(e) {
       // Sort descending by damage
       topResults.sort((a,b)=>b.daily_damage - a.daily_damage);
 
-      // Top 20% cutoff (at least 1)
-      const cutoff = Math.max(1, Math.floor(topResults.length * 0.2));
+      // Top 30% cutoff (at least 1)
+      const cutoff = Math.max(1, Math.floor(topResults.length * 0.3));
       const topTwenty = topResults.slice(0, cutoff);
 
-      // Compute cost thresholds (tertiles) from the top20 cost distribution
+      // Compute cost thresholds (tertiles) from the top30 cost distribution
       const costs = topTwenty.map(r => r.daily_cost).sort((a,b)=>a-b);
       const n = costs.length;
       const t1 = costs[Math.floor(n/3)] ?? costs[0];
@@ -158,7 +158,7 @@ self.onmessage = async function(e) {
         .sort((a,b)=>b.daily_damage - a.daily_damage)
         .slice(0,5);
 
-      const finalResults = [...lowBracket, ...midBracket, ...highBracket];
+      const finalResults = [...highBracket, ...midBracket, ...lowBracket];
 
       self.postMessage({ done:true, results: finalResults });
     }
