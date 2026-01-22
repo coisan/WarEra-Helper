@@ -111,7 +111,7 @@ window.calcFightBuilds = function() {
       const min = Math.floor(remaining/60);
       const sec = Math.floor(remaining%60).toString().padStart(2,'0');
 
-      tbody.innerHTML = `<tr><td colspan='10'>Calculating best builds... ${percent}% (ETA: ${min}:${sec})</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan='11'>Calculating best builds... ${percent}% (ETA: ${min}:${sec})</td></tr>`;
     } else if (e.data.done) {
       tbody.innerHTML = "";
       e.data.results.forEach(r => {
