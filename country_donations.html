@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Country Weekly Donations</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+  
+  <script>
+    fetch('nav.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('nav-placeholder').innerHTML = html;
+        document.getElementById('nav-countrydonations')
+          ?.classList.add('active-nav');
+      });
+  </script>
+
+  <div class="row-flex">
+    <div class="form-group">
+      <label for="countrySelect">Select a country:</label>
+      <select id="countrySelect"></select>
+    </div>
+    <div id="donationStats"></div>
+  </div>
+
+  <div id="loadingMessage" style="display: none; margin-top: 1rem;">
+    Loading donation data...
+  </div>
+
+  <div class="table-responsive">
+    <table id="donationsTable" class="sortable">
+      <thead>
+        <tr>
+          <th data-column="0" class="sortable">Player Name</th>
+          <th data-column="1" class="sortable">Weekly Donations</th>
+          <th data-column="2" class="sortable">Total Donations</th>
+          <th data-column="3" class="sortable">Last Donation</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="assets/config.js"></script>
+  <script type="module" src="assets/country_donations.js"></script>
+</body>
+</html>
