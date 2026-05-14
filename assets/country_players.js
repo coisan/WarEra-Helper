@@ -62,6 +62,64 @@ function checkBuff(userData) {
   }
 }
 
+// Check if date is within current week
+function isThisWeek(dateString) {
+  const date = new Date(dateString);
+  const today = new Date();
+  const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+  const currentWeekEnd = new Date(currentWeekStart);
+  currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+  
+  return date >= currentWeekStart && date <= currentWeekEnd;
+}
+
+// Format money with thousand separators
+function formatMoney(amount) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount || 0);
+}
+
+// Get weekly donations for a user
+async function getWeeklyDonations(userId) {
+  try {
+    let transactionsCursor = undefined;
+    let weeklyTotal = 0;
+    
+    while (true) {
+      const transInput = {
+        "userId": userId,
+        "limit": 100
+      };
+      if (transactionsCursor !== undefined) transInput.cursor = transactionsCursor;
+      
+      const transResponse = await fetch("https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=" + encodeURIComponent(JSON.stringify(transInput)));
+      const transResult = await transResponse.json();
+      const transactions = transResult.result.data?.items || [];
+      
+      // Filter for donation-type transactions and this week
+      transactions.forEach(trans => {
+        if (trans.type && (trans.type.includes('donation') || trans.type.includes('transfer') || trans.type.includes('gift'))) {
+          if (isThisWeek(trans.createdAt)) {
+            weeklyTotal += trans.money || 0;
+          }
+        }
+      });
+      
+      transactionsCursor = transResult.result.data?.nextCursor;
+      if (!transactionsCursor) break;
+    }
+    
+    return weeklyTotal;
+  } catch (error) {
+    console.error(`Error fetching donations for user ${userId}:`, error);
+    return 0;
+  }
+}
+
 async function fetchAllCountries() {
   const res = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
   const data = await res.json();
@@ -124,7 +182,7 @@ function renderChart(data) {
 }
 
 async function loadUsersByCountry(countryId) {
-  usersTableBody.innerHTML = "<tr><td colspan='9'>Loading...</td></tr>";
+  usersTableBody.innerHTML = "<tr><td colspan='10'>Loading...</td></tr>";
   const countDisplay = document.getElementById("playerCount");
   countDisplay.style.display = "none";
   
@@ -169,9 +227,10 @@ async function loadUsersByCountry(countryId) {
       const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
       const buff = checkBuff(userLite);
       const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
+      const weeklyDonations = await getWeeklyDonations(userId);
       levelCounts[level] = (levelCounts[level] || 0) + 1;
 
-      users.push({ userId, name, level, fightRatio, damage, economyRatio, wealth, reset, buff, muName });
+      users.push({ userId, name, level, fightRatio, damage, economyRatio, wealth, weeklyDonations, reset, buff, muName });
     }
 
     cursor = data.result?.data?.nextCursor;
@@ -190,6 +249,7 @@ async function loadUsersByCountry(countryId) {
       <td>${u.damage}</td>
       <td>${u.economyRatio}</td>
       <td>${u.wealth}</td>
+      <td>${formatMoney(u.weeklyDonations)}</td>
       <td>${u.reset}</td>
       <td>${u.buff}</td>
       <td>${u.muName}</td>
