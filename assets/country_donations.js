@@ -111,8 +111,10 @@ async function loadCountryDonations(countryId) {
     const donationData = {};
 
     for (const trans of allTransactions) {
-      const userId = trans.buyerId;
-      const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(userId)));
+      const input = {
+          userId: trans.buyerId
+        };
+      const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
       const userLite = (await res.json()).result.data;
       const userName = userLite.username;
 
