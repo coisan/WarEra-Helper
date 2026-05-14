@@ -118,7 +118,7 @@ async function loadCountryDonations(countryId) {
       const userLite = (await res.json()).result.data;
       const userName = userLite.username;
 
-      if (!userId) return;
+      if (!trans.buyerId) return;
 
       if (!donationData[userId]) {
         donationData[userId] = {
