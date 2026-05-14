@@ -223,15 +223,74 @@ async function loadCountryDonations(countryId) {
     }
 
     // =========================================
+    // FETCH USER DETAILS
+    // =========================================
+    
+    const userDetailsCache = {};
+    
+    await Promise.all(
+      allUsers.map(async (user) => {
+        try {
+          const input = {
+            userId: user._id
+          };
+    
+          const response = await fetch(
+            "https://api2.warera.io/trpc/user.getUserLite?input=" +
+              encodeURIComponent(JSON.stringify(input)),
+            {
+              headers: {
+                'x-api-key': key
+              }
+            }
+          );
+    
+          const result = await response.json();
+    
+          if (result.error?.data?.code === 'UNAUTHORIZED') {
+            apiKey = null;
+    
+            throw new Error(
+              'Invalid API key. Please reload the page and try again.'
+            );
+          }
+    
+          const userData = result.result?.data;
+    
+          userDetailsCache[user._id] = {
+            username: userData?.username || 'Unknown',
+            wealth:
+              userData?.rankings?.userWealth?.value || 0
+          };
+    
+        } catch (err) {
+          console.error(
+            `Failed loading user ${user._id}:`,
+            err
+          );
+    
+          userDetailsCache[user._id] = {
+            username: 'Unknown',
+            wealth: 0
+          };
+        }
+      })
+    );
+    
+    // =========================================
     // BUILD FINAL TABLE DATA
     // =========================================
-
+    
     const donationsArray = allUsers.map(user => {
+      const details =
+        userDetailsCache[user._id] || {};
+    
       return {
         userId: user._id,
-        userName: user.username || 'Unknown',
+        userName:
+          details.username || 'Unknown',
         userWealth:
-          user.rankings?.userWealth?.value || 0,
+          details.wealth || 0,
         weeklyTotal:
           weeklyDonations[user._id] || 0
       };
