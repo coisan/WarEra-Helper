@@ -110,10 +110,8 @@ async function loadCountryDonations(countryId) {
     // Aggregate donation data per user
     const donationData = {};
 
-    allTransactions.forEach(trans => {
+    for (const trans of allTransactions) {
       const userId = trans.buyerId;
-      const userName = trans.username || trans.fromUsername || trans.senderName || 'Unknown';
-
       const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(userId)));
       const userLite = (await res.json()).result.data;
       const userName = userLite.username;
@@ -144,7 +142,7 @@ async function loadCountryDonations(countryId) {
       if (!donationData[userId].lastDonation || donationDate > new Date(donationData[userId].lastDonation)) {
         donationData[userId].lastDonation = trans.createdAt;
       }
-    });
+    }
     
     // Filter users with donations
     const donationsArray = Object.values(donationData).filter(d => d.transactionCount > 0);
