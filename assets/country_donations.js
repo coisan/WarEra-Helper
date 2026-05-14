@@ -79,7 +79,6 @@ async function loadCountryDonations(countryId) {
   }
 
   try {
-    // Ensure we have the API key before making authenticated requests
     const key = getApiKey();
 
     // Current week start
@@ -93,8 +92,62 @@ async function loadCountryDonations(countryId) {
 
     currentWeekStart.setHours(0, 0, 0, 0);
 
-    // Fetch all donation transactions for the selected country
-    const allTransactions = [];
+    // =========================================
+    // FETCH ALL COUNTRY USERS
+    // =========================================
+
+    const allUsers = [];
+
+    let usersCursor = undefined;
+
+    while (true) {
+      const input = {
+        countryId: countryId,
+        limit: 100
+      };
+
+      if (usersCursor !== undefined) {
+        input.cursor = usersCursor;
+      }
+
+      const response = await fetch(
+        "https://api2.warera.io/trpc/user.getUsersByCountry?input=" +
+          encodeURIComponent(JSON.stringify(input)),
+        {
+          headers: {
+            'x-api-key': key
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.error?.data?.code === 'UNAUTHORIZED') {
+        apiKey = null;
+
+        throw new Error(
+          'Invalid API key. Please reload the page and try again.'
+        );
+      }
+
+      const fetchedUsers =
+        data.result.data?.items || [];
+
+      allUsers.push(...fetchedUsers);
+
+      usersCursor =
+        data.result.data?.nextCursor;
+
+      if (!usersCursor) {
+        break;
+      }
+    }
+
+    // =========================================
+    // FETCH WEEKLY DONATIONS ONLY
+    // =========================================
+
+    const weeklyDonations = {};
 
     let transactionsCursor = undefined;
 
@@ -121,7 +174,6 @@ async function loadCountryDonations(countryId) {
 
       const transResult = await transResponse.json();
 
-      // Handle invalid API key
       if (transResult.error?.data?.code === 'UNAUTHORIZED') {
         apiKey = null;
 
@@ -133,20 +185,32 @@ async function loadCountryDonations(countryId) {
       const transactions =
         transResult.result.data?.items || [];
 
-      // Keep only this week's transactions
-      const weeklyTransactions = transactions.filter(trans => {
-        return (
-          new Date(trans.createdAt) >= currentWeekStart
-        );
-      });
+      // Stop once older transactions appear
+      let reachedOldTransactions = false;
 
-      allTransactions.push(...weeklyTransactions);
+      for (const trans of transactions) {
+        const transDate = new Date(trans.createdAt);
 
-      // Stop pagination once older transactions appear
-      const hasOlderTransactions =
-        weeklyTransactions.length < transactions.length;
+        if (transDate < currentWeekStart) {
+          reachedOldTransactions = true;
+          break;
+        }
 
-      if (hasOlderTransactions) {
+        const userId = trans.buyerId;
+
+        if (!userId) {
+          continue;
+        }
+
+        if (!weeklyDonations[userId]) {
+          weeklyDonations[userId] = 0;
+        }
+
+        weeklyDonations[userId] +=
+          trans.money || 0;
+      }
+
+      if (reachedOldTransactions) {
         break;
       }
 
@@ -158,134 +222,30 @@ async function loadCountryDonations(countryId) {
       }
     }
 
-    // Aggregate donation data per user
-    const donationData = {};
+    // =========================================
+    // BUILD FINAL TABLE DATA
+    // =========================================
 
-    // Cache user data by userId
-    const userCache = {};
+    const donationsArray = allUsers.map(user => {
+      return {
+        userId: user._id,
+        userName: user.username || 'Unknown',
+        userWealth:
+          user.rankings?.userWealth?.value || 0,
+        weeklyTotal:
+          weeklyDonations[user._id] || 0
+      };
+    });
 
-    // Extract unique user IDs
-    const uniqueUserIds = [
-      ...new Set(
-        allTransactions
-          .map(t => t.buyerId)
-          .filter(Boolean)
-      )
-    ];
-
-    // Fetch each user only once
-    await Promise.all(
-      uniqueUserIds.map(async (userId) => {
-        try {
-          const input = { userId };
-
-          const res = await fetch(
-            "https://api2.warera.io/trpc/user.getUserLite?input=" +
-              encodeURIComponent(JSON.stringify(input)),
-            {
-              headers: {
-                'x-api-key': key
-              }
-            }
-          );
-
-          const result = await res.json();
-
-          // Handle invalid API key
-          if (result.error?.data?.code === 'UNAUTHORIZED') {
-            apiKey = null;
-
-            throw new Error(
-              'Invalid API key. Please reload the page and try again.'
-            );
-          }
-
-          const userData = result.result?.data;
-
-          userCache[userId] = {
-            username: userData?.username || 'Unknown',
-            wealth:
-              userData?.rankings?.userWealth?.value || 0
-          };
-
-        } catch (err) {
-          console.error(
-            `Failed loading user ${userId}:`,
-            err
-          );
-
-          userCache[userId] = {
-            username: 'Unknown',
-            wealth: 0
-          };
-        }
-      })
-    );
-
-    // Process transactions
-    for (const trans of allTransactions) {
-      const userId = trans.buyerId;
-
-      if (!userId) {
-        continue;
-      }
-
-      const fallbackUserName =
-        trans.username ||
-        trans.fromUsername ||
-        trans.senderName ||
-        'Unknown';
-
-      const cachedUser = userCache[userId] || {};
-
-      const userName =
-        cachedUser.username || fallbackUserName;
-
-      const userWealth =
-        cachedUser.wealth || 0;
-
-      if (!donationData[userId]) {
-        donationData[userId] = {
-          userId,
-          userName,
-          userWealth,
-          weeklyTotal: 0,
-          totalDonations: 0,
-          lastDonation: null,
-          transactionCount: 0
-        };
-      }
-
-      donationData[userId].transactionCount++;
-      donationData[userId].totalDonations += trans.money || 0;
-
-      // Weekly total
-      donationData[userId].weeklyTotal +=
-        trans.money || 0;
-
-      // Track most recent donation
-      const donationDate = new Date(trans.createdAt);
-
-      if (
-        !donationData[userId].lastDonation ||
-        donationDate >
-          new Date(donationData[userId].lastDonation)
-      ) {
-        donationData[userId].lastDonation =
-          trans.createdAt;
-      }
-    }
-
-    // Filter users with donations
-    const donationsArray = Object.values(donationData)
-      .filter(d => d.transactionCount > 0);
-
-    // Sort by weekly donations
+    // Sort by weekly donations descending
     donationsArray.sort(
       (a, b) => b.weeklyTotal - a.weeklyTotal
     );
 
-    // Update statistics
+    // =========================================
+    // STATS
+    // =========================================
+
     const totalWeeklyDonations =
       donationsArray.reduce(
         (sum, d) => sum + d.weeklyTotal,
@@ -300,7 +260,7 @@ async function loadCountryDonations(countryId) {
         <div style="margin-left: 2rem;">
           <strong>Weekly Donations Total: ${formatMoney(totalWeeklyDonations)}</strong>
           <br>
-          <strong>Donors This Week: ${donationsArray.length}</strong>
+          <strong>Donors This Week: ${donationsArray.filter(d => d.weeklyTotal > 0).length}</strong>
         </div>
       `;
     }
@@ -375,8 +335,6 @@ function populateTable(donations) {
       <td><strong>${donation.userName || 'Unknown'}</strong></td>
       <td>${formatMoney(donation.userWealth)}</td>
       <td>${formatMoney(donation.weeklyTotal)}</td>
-      <td>${formatMoney(donation.totalDonations)}</td>
-      <td>${donation.lastDonation ? new Date(donation.lastDonation).toLocaleDateString() : 'N/A'}</td>
     `;
   });
 
