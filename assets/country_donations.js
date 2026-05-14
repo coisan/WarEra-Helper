@@ -1,8 +1,6 @@
 // Country Donations Module
 // Fetches transaction data from WarEra API and calculates weekly donations per player
 
-import { API_BASE_URL } from './config.js';
-
 const TABLE_ID = 'donationsTable';
 const COUNTRY_SELECT_ID = 'countrySelect';
 const STATS_ID = 'donationStats';
@@ -15,7 +13,7 @@ let currentCountryId = null;
 async function initializeCountryDonations() {
   try {
     // Load countries
-    const response = await fetch(`${API_BASE_URL}/country.getAllCountries`);
+    const response = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
     const result = await response.json();
     allCountries = result.result.data || [];
     
@@ -51,7 +49,11 @@ async function loadCountryDonations(countryId) {
   
   try {
     // Get all users in country
-    const usersResponse = await fetch(`${API_BASE_URL}/user.getUsersByCountry?countryId=${countryId}&limit=1000`);
+    const input = {
+      "countryId": countryId,
+      "limit": 1000
+    };
+    const usersResponse = await fetch("https://api2.warera.io/trpc/user.getUsersByCountry?input=" + encodeURIComponent(JSON.stringify(input)));
     const usersResult = await usersResponse.json();
     const users = usersResult.result.data?.items || [];
     
@@ -62,10 +64,22 @@ async function loadCountryDonations(countryId) {
       const userId = userSummary._id;
       try {
         // Get transactions for this user
-        const transResponse = await fetch(`${API_BASE_URL}/transaction.getPaginatedTransactions?userId=${userId}&limit=1000`);
-        const transResult = transResponse.json();
+        const transInput = {
+          "userId": userId,
+          "limit": 1000
+        };
+        const transResponse = await fetch("https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=" + encodeURIComponent(JSON.stringify(transInput)));
+        const transResult = await transResponse.json();
         
-        const transactions = (await transResult).result.data?.items || [];
+        const transactions = transResult.result.data?.items || [];
+        
+        // Get user lite data for username
+        const userInput = {
+          "userId": userId
+        };
+        const userRes = await fetch("https://api2.warera.io/trpc/user.getUserLite?input=" + encodeURIComponent(JSON.stringify(userInput)));
+        const userData = (await userRes.json()).result?.data;
+        const userName = userData?.username || 'Unknown';
         
         // Filter for donation-type transactions (looking for financial transfers)
         transactions.forEach(trans => {
@@ -73,7 +87,7 @@ async function loadCountryDonations(countryId) {
             if (!donationData[userId]) {
               donationData[userId] = {
                 userId: userId,
-                userName: userSummary.username || 'Unknown',
+                userName: userName,
                 weeklyTotal: 0,
                 totalDonations: 0,
                 lastDonation: null,
