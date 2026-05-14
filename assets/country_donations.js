@@ -135,8 +135,12 @@ async function loadCountryDonations(countryId) {
     
           const result = await res.json();
     
-          userCache[userId] =
-            result.result?.data?.username || 'Unknown';
+          const userData = result.result?.data;
+
+          userCache[userId] = {
+            username: userData?.username || 'Unknown',
+            wealth: userData?.rankings?.userWealth?.value || 0
+          };
         } catch (err) {
           console.error(`Failed loading user ${userId}:`, err);
           userCache[userId] = 'Unknown';
@@ -156,13 +160,19 @@ async function loadCountryDonations(countryId) {
         trans.senderName ||
         'Unknown';
     
+      const cachedUser = userCache[userId] || {};
+
       const userName =
-        userCache[userId] || fallbackUserName;
+        cachedUser.username || fallbackUserName;
+      
+      const userWealth =
+        cachedUser.wealth || 0;
     
       if (!donationData[userId]) {
         donationData[userId] = {
           userId,
           userName,
+          userWealth,
           weeklyTotal: 0,
           totalDonations: 0,
           lastDonation: null,
@@ -251,6 +261,7 @@ function populateTable(donations) {
     const row = tbody.insertRow();
     row.innerHTML = `
       <td><strong>${donation.userName || 'Unknown'}</strong></td>
+      <td>${formatMoney(donation.userWealth)}</td>
       <td>${formatMoney(donation.weeklyTotal)}</td>
       <td>${formatMoney(donation.totalDonations)}</td>
       <td>${donation.lastDonation ? new Date(donation.lastDonation).toLocaleDateString() : 'N/A'}</td>
