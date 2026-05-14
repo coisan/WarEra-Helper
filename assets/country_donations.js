@@ -71,109 +71,76 @@ async function loadCountryDonations(countryId) {
     // Ensure we have the API key before making authenticated requests
     const key = getApiKey();
 
-    // Get all users in country with pagination
-    const users = [];
-    let cursor = undefined;
-    
+    // Fetch all donation transactions for the selected country in one paginated stream
+    const allTransactions = [];
+    let transactionsCursor = undefined;
+
     while (true) {
-      const input = {
+      const transInput = {
         "countryId": countryId,
+        "transactionType": "donation",
         "limit": 100
       };
-      if (cursor !== undefined) input.cursor = cursor;
-      
-      const usersResponse = await fetch("https://api2.warera.io/trpc/user.getUsersByCountry?input=" + encodeURIComponent(JSON.stringify(input)));
-      const usersResult = await usersResponse.json();
-      const fetchedUsers = usersResult.result.data?.items || [];
-      users.push(...fetchedUsers);
-      
-      cursor = usersResult.result.data?.nextCursor;
-      if (!cursor) break;
-    }
-    
-    // Collect transaction data for all users
-    const donationData = {};
-    
-    for (const userSummary of users) {
-      const userId = userSummary._id;
-      try {
-        // Get transactions for this user with pagination
-        let transactionsCursor = undefined;
-        const allTransactions = [];
-        
-        while (true) {
-          const transInput = {
-            "userId": userId,
-            "limit": 100
-          };
-          if (transactionsCursor !== undefined) transInput.cursor = transactionsCursor;
-          
-          // getPaginatedTransactions uses the private API key via x-api-key header
-          const transResponse = await fetch(
-            "https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=" + encodeURIComponent(JSON.stringify(transInput)),
-            {
-              headers: {
-                'x-api-key': key
-              }
-            }
-          );
-          const transResult = await transResponse.json();
+      if (transactionsCursor !== undefined) transInput.cursor = transactionsCursor;
 
-          // If the API returns an auth error, clear the cached key so the user
-          // can re-enter it on their next attempt
-          if (transResult.error?.data?.code === 'UNAUTHORIZED') {
-            apiKey = null;
-            throw new Error('Invalid API key. Please reload the page and try again.');
+      const transResponse = await fetch(
+        "https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=" + encodeURIComponent(JSON.stringify(transInput)),
+        {
+          headers: {
+            'x-api-key': key
           }
-
-          const transactions = transResult.result.data?.items || [];
-          allTransactions.push(...transactions);
-          
-          transactionsCursor = transResult.result.data?.nextCursor;
-          if (!transactionsCursor) break;
         }
-        
-        // Get user lite data for username
-        const userInput = {
-          "userId": userId
-        };
-        const userRes = await fetch("https://api2.warera.io/trpc/user.getUserLite?input=" + encodeURIComponent(JSON.stringify(userInput)));
-        const userData = (await userRes.json()).result?.data;
-        const userName = userData?.username || 'Unknown';
-        
-        // Filter for donation-type transactions (looking for financial transfers)
-        allTransactions.forEach(trans => {
-          if (trans.type && (trans.type.includes('donation') || trans.type.includes('transfer') || trans.type.includes('gift'))) {
-            if (!donationData[userId]) {
-              donationData[userId] = {
-                userId: userId,
-                userName: userName,
-                weeklyTotal: 0,
-                totalDonations: 0,
-                lastDonation: null,
-                transactionCount: 0
-              };
-            }
-            
-            donationData[userId].transactionCount++;
-            donationData[userId].totalDonations += trans.money || 0;
-            
-            // Check if donation is from this week
-            if (isThisWeek(trans.createdAt)) {
-              donationData[userId].weeklyTotal += trans.money || 0;
-            }
-            
-            // Track most recent donation
-            const donationDate = new Date(trans.createdAt);
-            if (!donationData[userId].lastDonation || donationDate > new Date(donationData[userId].lastDonation)) {
-              donationData[userId].lastDonation = trans.createdAt;
-            }
-          }
-        });
-      } catch (error) {
-        console.error(`Error fetching transactions for user ${userId}:`, error);
+      );
+      const transResult = await transResponse.json();
+
+      // If the API returns an auth error, clear the cached key so the user
+      // can re-enter it on their next attempt
+      if (transResult.error?.data?.code === 'UNAUTHORIZED') {
+        apiKey = null;
+        throw new Error('Invalid API key. Please reload the page and try again.');
       }
+
+      const transactions = transResult.result.data?.items || [];
+      allTransactions.push(...transactions);
+
+      transactionsCursor = transResult.result.data?.nextCursor;
+      if (!transactionsCursor) break;
     }
+
+    // Aggregate donation data per user
+    const donationData = {};
+
+    allTransactions.forEach(trans => {
+      const userId = trans.userId || trans.fromUserId || trans.senderId;
+      const userName = trans.username || trans.fromUsername || trans.senderName || 'Unknown';
+
+      if (!userId) return;
+
+      if (!donationData[userId]) {
+        donationData[userId] = {
+          userId,
+          userName,
+          weeklyTotal: 0,
+          totalDonations: 0,
+          lastDonation: null,
+          transactionCount: 0
+        };
+      }
+
+      donationData[userId].transactionCount++;
+      donationData[userId].totalDonations += trans.money || 0;
+
+      // Check if donation is from this week
+      if (isThisWeek(trans.createdAt)) {
+        donationData[userId].weeklyTotal += trans.money || 0;
+      }
+
+      // Track most recent donation
+      const donationDate = new Date(trans.createdAt);
+      if (!donationData[userId].lastDonation || donationDate > new Date(donationData[userId].lastDonation)) {
+        donationData[userId].lastDonation = trans.createdAt;
+      }
+    });
     
     // Filter users with donations
     const donationsArray = Object.values(donationData).filter(d => d.transactionCount > 0);
