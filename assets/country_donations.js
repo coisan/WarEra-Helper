@@ -82,6 +82,17 @@ async function loadCountryDonations(countryId) {
     // Ensure we have the API key before making authenticated requests
     const key = getApiKey();
 
+    // Current week start
+    const now = new Date();
+
+    const currentWeekStart = new Date(now);
+
+    currentWeekStart.setDate(
+      now.getDate() - now.getDay()
+    );
+
+    currentWeekStart.setHours(0, 0, 0, 0);
+
     // Fetch all donation transactions for the selected country
     const allTransactions = [];
 
@@ -113,16 +124,34 @@ async function loadCountryDonations(countryId) {
       // Handle invalid API key
       if (transResult.error?.data?.code === 'UNAUTHORIZED') {
         apiKey = null;
+
         throw new Error(
           'Invalid API key. Please reload the page and try again.'
         );
       }
 
-      const transactions = transResult.result.data?.items || [];
+      const transactions =
+        transResult.result.data?.items || [];
 
-      allTransactions.push(...transactions);
+      // Keep only this week's transactions
+      const weeklyTransactions = transactions.filter(trans => {
+        return (
+          new Date(trans.createdAt) >= currentWeekStart
+        );
+      });
 
-      transactionsCursor = transResult.result.data?.nextCursor;
+      allTransactions.push(...weeklyTransactions);
+
+      // Stop pagination once older transactions appear
+      const hasOlderTransactions =
+        weeklyTransactions.length < transactions.length;
+
+      if (hasOlderTransactions) {
+        break;
+      }
+
+      transactionsCursor =
+        transResult.result.data?.nextCursor;
 
       if (!transactionsCursor) {
         break;
@@ -165,6 +194,7 @@ async function loadCountryDonations(countryId) {
           // Handle invalid API key
           if (result.error?.data?.code === 'UNAUTHORIZED') {
             apiKey = null;
+
             throw new Error(
               'Invalid API key. Please reload the page and try again.'
             );
@@ -174,11 +204,15 @@ async function loadCountryDonations(countryId) {
 
           userCache[userId] = {
             username: userData?.username || 'Unknown',
-            wealth: userData?.rankings?.userWealth?.value || 0
+            wealth:
+              userData?.rankings?.userWealth?.value || 0
           };
 
         } catch (err) {
-          console.error(`Failed loading user ${userId}:`, err);
+          console.error(
+            `Failed loading user ${userId}:`,
+            err
+          );
 
           userCache[userId] = {
             username: 'Unknown',
@@ -225,19 +259,20 @@ async function loadCountryDonations(countryId) {
       donationData[userId].transactionCount++;
       donationData[userId].totalDonations += trans.money || 0;
 
-      // Check if donation is from this week
-      if (isThisWeek(trans.createdAt)) {
-        donationData[userId].weeklyTotal += trans.money || 0;
-      }
+      // Weekly total
+      donationData[userId].weeklyTotal +=
+        trans.money || 0;
 
       // Track most recent donation
       const donationDate = new Date(trans.createdAt);
 
       if (
         !donationData[userId].lastDonation ||
-        donationDate > new Date(donationData[userId].lastDonation)
+        donationDate >
+          new Date(donationData[userId].lastDonation)
       ) {
-        donationData[userId].lastDonation = trans.createdAt;
+        donationData[userId].lastDonation =
+          trans.createdAt;
       }
     }
 
@@ -246,22 +281,26 @@ async function loadCountryDonations(countryId) {
       .filter(d => d.transactionCount > 0);
 
     // Sort by weekly donations
-    donationsArray.sort((a, b) => b.weeklyTotal - a.weeklyTotal);
-
-    // Update statistics
-    const totalWeeklyDonations = donationsArray.reduce(
-      (sum, d) => sum + d.weeklyTotal,
-      0
+    donationsArray.sort(
+      (a, b) => b.weeklyTotal - a.weeklyTotal
     );
 
-    const statsDiv = document.getElementById(STATS_ID);
+    // Update statistics
+    const totalWeeklyDonations =
+      donationsArray.reduce(
+        (sum, d) => sum + d.weeklyTotal,
+        0
+      );
+
+    const statsDiv =
+      document.getElementById(STATS_ID);
 
     if (statsDiv) {
       statsDiv.innerHTML = `
         <div style="margin-left: 2rem;">
           <strong>Weekly Donations Total: ${formatMoney(totalWeeklyDonations)}</strong>
           <br>
-          <strong>Donors This Week: ${donationsArray.filter(d => d.weeklyTotal > 0).length}</strong>
+          <strong>Donors This Week: ${donationsArray.length}</strong>
         </div>
       `;
     }
@@ -270,9 +309,15 @@ async function loadCountryDonations(countryId) {
     populateTable(donationsArray);
 
   } catch (error) {
-    console.error('Error loading country donations:', error);
+    console.error(
+      'Error loading country donations:',
+      error
+    );
 
-    alert('Error loading donation data: ' + error.message);
+    alert(
+      'Error loading donation data: ' +
+      error.message
+    );
 
   } finally {
     if (loadingMessage) {
@@ -293,9 +338,14 @@ function isThisWeek(dateString) {
 
   const currentWeekEnd = new Date(currentWeekStart);
 
-  currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+  currentWeekEnd.setDate(
+    currentWeekEnd.getDate() + 6
+  );
 
-  return date >= currentWeekStart && date <= currentWeekEnd;
+  return (
+    date >= currentWeekStart &&
+    date <= currentWeekEnd
+  );
 }
 
 // Format money with thousand separators
@@ -310,7 +360,9 @@ function formatMoney(amount) {
 
 // Populate donations table
 function populateTable(donations) {
-  const tbody = document.querySelector(`#${TABLE_ID} tbody`);
+  const tbody = document.querySelector(
+    `#${TABLE_ID} tbody`
+  );
 
   if (!tbody) return;
 
@@ -333,13 +385,16 @@ function populateTable(donations) {
 
 // Clear table
 function clearTable() {
-  const tbody = document.querySelector(`#${TABLE_ID} tbody`);
+  const tbody = document.querySelector(
+    `#${TABLE_ID} tbody`
+  );
 
   if (tbody) {
     tbody.innerHTML = '';
   }
 
-  const statsDiv = document.getElementById(STATS_ID);
+  const statsDiv =
+    document.getElementById(STATS_ID);
 
   if (statsDiv) {
     statsDiv.innerHTML = '';
@@ -354,7 +409,8 @@ function setupSorting() {
 
   headers.forEach(header => {
     header.addEventListener('click', () => {
-      const columnIndex = header.getAttribute('data-column');
+      const columnIndex =
+        header.getAttribute('data-column');
 
       const tbody = document.querySelector(
         `#${TABLE_ID} tbody`
@@ -364,7 +420,8 @@ function setupSorting() {
         tbody.querySelectorAll('tr')
       );
 
-      const isAsc = header.classList.contains('asc');
+      const isAsc =
+        header.classList.contains('asc');
 
       // Remove active class from all headers
       headers.forEach(h =>
@@ -373,8 +430,11 @@ function setupSorting() {
 
       // Sort rows
       rows.sort((a, b) => {
-        let aVal = a.cells[columnIndex].textContent.trim();
-        let bVal = b.cells[columnIndex].textContent.trim();
+        let aVal =
+          a.cells[columnIndex].textContent.trim();
+
+        let bVal =
+          b.cells[columnIndex].textContent.trim();
 
         // Try to parse as number
         const aNum = parseFloat(
@@ -397,10 +457,14 @@ function setupSorting() {
       });
 
       // Add sorted rows back
-      rows.forEach(row => tbody.appendChild(row));
+      rows.forEach(row =>
+        tbody.appendChild(row)
+      );
 
       // Add active class to clicked header
-      header.classList.add(isAsc ? 'desc' : 'asc');
+      header.classList.add(
+        isAsc ? 'desc' : 'asc'
+      );
     });
   });
 }
