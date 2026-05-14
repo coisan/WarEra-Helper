@@ -9,6 +9,26 @@ const LOADING_ID = 'loadingMessage';
 let allCountries = [];
 let currentCountryId = null;
 
+// API key — prompted once and cached for the session
+let apiKey = null;
+
+// Prompt the user for their API key (once per session)
+function getApiKey() {
+  if (apiKey) return apiKey;
+
+  const key = window.prompt(
+    'Enter your WarEra private API key.\n\nThis is required to fetch transaction data and will only be asked once per session.',
+    ''
+  );
+
+  if (!key || key.trim() === '') {
+    throw new Error('API key is required to load donation data.');
+  }
+
+  apiKey = key.trim();
+  return apiKey;
+}
+
 // Initialize page
 async function initializeCountryDonations() {
   try {
@@ -48,6 +68,9 @@ async function loadCountryDonations(countryId) {
   if (loadingMessage) loadingMessage.style.display = 'block';
   
   try {
+    // Ensure we have the API key before making authenticated requests
+    const key = getApiKey();
+
     // Get all users in country with pagination
     const users = [];
     let cursor = undefined;
@@ -85,8 +108,24 @@ async function loadCountryDonations(countryId) {
           };
           if (transactionsCursor !== undefined) transInput.cursor = transactionsCursor;
           
-          const transResponse = await fetch("https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=" + encodeURIComponent(JSON.stringify(transInput)));
+          // getPaginatedTransactions uses the private API key via x-api-key header
+          const transResponse = await fetch(
+            "https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=" + encodeURIComponent(JSON.stringify(transInput)),
+            {
+              headers: {
+                'x-api-key': key
+              }
+            }
+          );
           const transResult = await transResponse.json();
+
+          // If the API returns an auth error, clear the cached key so the user
+          // can re-enter it on their next attempt
+          if (transResult.error?.data?.code === 'UNAUTHORIZED') {
+            apiKey = null;
+            throw new Error('Invalid API key. Please reload the page and try again.');
+          }
+
           const transactions = transResult.result.data?.items || [];
           allTransactions.push(...transactions);
           
@@ -160,7 +199,7 @@ async function loadCountryDonations(countryId) {
     
   } catch (error) {
     console.error('Error loading country donations:', error);
-    alert('Error loading donation data. Please try again.');
+    alert('Error loading donation data: ' + error.message);
   } finally {
     if (loadingMessage) loadingMessage.style.display = 'none';
   }
