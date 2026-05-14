@@ -109,18 +109,56 @@ async function loadCountryDonations(countryId) {
 
     // Aggregate donation data per user
     const donationData = {};
-
+    
+    // Cache usernames by userId
+    const userCache = {};
+    
+    // Extract unique user IDs
+    const uniqueUserIds = [
+      ...new Set(
+        allTransactions
+          .map(t => t.buyerId)
+          .filter(Boolean)
+      )
+    ];
+    
+    // Fetch each user only once
+    await Promise.all(
+      uniqueUserIds.map(async (userId) => {
+        try {
+          const input = { userId };
+    
+          const res = await fetch(
+            "https://api2.warera.io/trpc/user.getUserLite?input=" +
+            encodeURIComponent(JSON.stringify(input))
+          );
+    
+          const result = await res.json();
+    
+          userCache[userId] =
+            result.result?.data?.username || 'Unknown';
+        } catch (err) {
+          console.error(`Failed loading user ${userId}:`, err);
+          userCache[userId] = 'Unknown';
+        }
+      })
+    );
+    
+    // Process transactions
     for (const trans of allTransactions) {
       const userId = trans.buyerId;
-      const input = {
-          userId: userId
-        };
-      const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
-      const userLite = (await res.json()).result.data;
-      const userName = userLite.username;
-
-      if (!userId) return;
-
+    
+      if (!userId) continue;
+    
+      const fallbackUserName =
+        trans.username ||
+        trans.fromUsername ||
+        trans.senderName ||
+        'Unknown';
+    
+      const userName =
+        userCache[userId] || fallbackUserName;
+    
       if (!donationData[userId]) {
         donationData[userId] = {
           userId,
@@ -131,18 +169,22 @@ async function loadCountryDonations(countryId) {
           transactionCount: 0
         };
       }
-
+    
       donationData[userId].transactionCount++;
       donationData[userId].totalDonations += trans.money || 0;
-
+    
       // Check if donation is from this week
       if (isThisWeek(trans.createdAt)) {
         donationData[userId].weeklyTotal += trans.money || 0;
       }
-
+    
       // Track most recent donation
       const donationDate = new Date(trans.createdAt);
-      if (!donationData[userId].lastDonation || donationDate > new Date(donationData[userId].lastDonation)) {
+    
+      if (
+        !donationData[userId].lastDonation ||
+        donationDate > new Date(donationData[userId].lastDonation)
+      ) {
         donationData[userId].lastDonation = trans.createdAt;
       }
     }
