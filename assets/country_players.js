@@ -249,7 +249,7 @@ async function getWeeklyDonations(userId) {
       if (!transactionsCursor) break;
     }
     
-    return weeklyTotal;
+    return weeklyTotal.toLocaleString();
   } catch (error) {
     console.error(`Error fetching donations for user ${userId}:`, error);
     return 0;
@@ -353,7 +353,7 @@ async function loadUsersByCountry(countryId) {
         const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
         const buff = checkBuff(userLite);
         const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
-        const weeklyDonations = await getWeeklyDonations(userId).toLocaleString();
+        const weeklyDonations = await getWeeklyDonations(userId);
         levelCounts[level] = (levelCounts[level] || 0) + 1;
 
         users.push({ userId, name, level, fightRatio, damage, economyRatio, wealth, weeklyDonations, reset, buff, muName });
