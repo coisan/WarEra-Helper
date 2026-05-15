@@ -1,14 +1,156 @@
 const SKILL_COSTS = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
 const FIGHT_SKILLS = ["health", "hunger", "attack", "criticalChance", "criticalDamages", "armor", "precision", "dodge", "lootChance"];
 const ECONOMY_SKILLS = ["energy", "companies", "entrepreneurship", "production"];
+const API_KEY_STORAGE_KEY = 'warera_api_key';
 
 const countrySelect = document.getElementById("countrySelect");
 const usersTableBody = document.querySelector("#usersTable tbody");
 const countryMap = new Map();
 const muMap = new Map();
 let playerChartInstance = null;
+let apiKey = null;
 
 import {makeTableSortable} from './config.js';
+
+// =========================================
+// API KEY STORAGE FUNCTIONS
+// =========================================
+
+function loadApiKeyFromStorage() {
+  const stored = localStorage.getItem(API_KEY_STORAGE_KEY);
+  if (stored) {
+    apiKey = stored;
+  }
+}
+
+function saveApiKeyToStorage(key) {
+  localStorage.setItem(API_KEY_STORAGE_KEY, key);
+}
+
+function clearApiKeyFromStorage() {
+  localStorage.removeItem(API_KEY_STORAGE_KEY);
+  apiKey = null;
+}
+
+function getApiKey() {
+  if (apiKey) return apiKey;
+
+  const key = window.prompt(
+    'Enter your WarEra private API key.\n\nThis is required to fetch transaction data and will be saved for future use.',
+    ''
+  );
+
+  if (!key || key.trim() === '') {
+    throw new Error('API key is required to load player data.');
+  }
+
+  apiKey = key.trim();
+  saveApiKeyToStorage(apiKey);
+  return apiKey;
+}
+
+// =========================================
+// MODULAR API CALL FUNCTIONS
+// =========================================
+
+async function fetchApi(endpoint, input = null, requiresAuth = false) {
+  try {
+    let url = endpoint;
+    if (input) {
+      url += "?input=" + encodeURIComponent(JSON.stringify(input));
+    }
+
+    const options = {};
+    if (requiresAuth) {
+      const key = getApiKey();
+      options.headers = {
+        'x-api-key': key
+      };
+    }
+
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    if (data.error?.data?.code === 'UNAUTHORIZED') {
+      clearApiKeyFromStorage();
+      throw new Error('Invalid API key. Please reload the page and try again.');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('API call failed:', error);
+    throw error;
+  }
+}
+
+async function fetchAllCountries() {
+  const data = await fetchApi("https://api2.warera.io/trpc/country.getAllCountries");
+  return data.result?.data ?? [];
+}
+
+async function fetchUsersByCountry(countryId, cursor = undefined) {
+  const input = {
+    countryId: countryId,
+    limit: 100
+  };
+  if (cursor) input.cursor = cursor;
+
+  const data = await fetchApi(
+    "https://api2.warera.io/trpc/user.getUsersByCountry",
+    input,
+    true
+  );
+  return {
+    users: data.result?.data?.items ?? [],
+    nextCursor: data.result?.data?.nextCursor
+  };
+}
+
+async function fetchUserLite(userId) {
+  const input = { userId: userId };
+  const data = await fetchApi(
+    "https://api2.warera.io/trpc/user.getUserLite",
+    input,
+    true
+  );
+  return data.result?.data ?? null;
+}
+
+async function fetchWeeklyTransactions(userId, cursor = undefined) {
+  const input = {
+    userId: userId,
+    limit: 100
+  };
+  if (cursor) input.cursor = cursor;
+
+  const data = await fetchApi(
+    "https://api2.warera.io/trpc/transaction.getPaginatedTransactions",
+    input,
+    true
+  );
+  return {
+    transactions: data.result?.data?.items ?? [],
+    nextCursor: data.result?.data?.nextCursor
+  };
+}
+
+async function fetchMuName(muId) {
+  if (muMap.has(muId)) return muMap.get(muId);
+  
+  const input = { muId: muId };
+  const data = await fetchApi(
+    "https://api2.warera.io/trpc/mu.getById",
+    input,
+    false
+  );
+  const name = data.result?.data?.name || muId;
+  muMap.set(muId, name);
+  return name;
+}
+
+// =========================================
+// UTILITY FUNCTIONS
+// =========================================
 
 function sumSkillPoints(skillObj, skillNames) {
   return skillNames.reduce((total, key) => {
@@ -33,21 +175,12 @@ function timeUntilReset(lastResetAt) {
 function getTimeDiffString(targetDate) {
   const now = new Date();
   const target = new Date(targetDate)
-  const diffMs = Math.abs(now - target); // ms difference
+  const diffMs = Math.abs(now - target);
 
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
   return `${hours}h${minutes}m`;
-}
-
-async function fetchMuName(id) {
-  if (muMap.has(id)) return muMap.get(id);
-  const res = await fetch("https://api2.warera.io/trpc/mu.getById?input=" + encodeURIComponent(JSON.stringify({ muId: id })));
-  const data = await res.json();
-  const name = data.result?.data?.name || id;
-  muMap.set(id, name);
-  return name;
 }
 
 function checkBuff(userData) {
@@ -62,18 +195,17 @@ function checkBuff(userData) {
   }
 }
 
-// Check if date is within current week
 function isThisWeek(dateString) {
   const date = new Date(dateString);
   const today = new Date();
   const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+  currentWeekStart.setHours(0, 0, 0, 0);
   const currentWeekEnd = new Date(currentWeekStart);
   currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
   
   return date >= currentWeekStart && date <= currentWeekEnd;
 }
 
-// Format money with thousand separators
 function formatMoney(amount) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -83,22 +215,17 @@ function formatMoney(amount) {
   }).format(amount || 0);
 }
 
-// Get weekly donations for a user
+// =========================================
+// WEEKLY DONATIONS CALCULATION
+// =========================================
+
 async function getWeeklyDonations(userId) {
   try {
     let transactionsCursor = undefined;
     let weeklyTotal = 0;
     
     while (true) {
-      const transInput = {
-        "userId": userId,
-        "limit": 100
-      };
-      if (transactionsCursor !== undefined) transInput.cursor = transactionsCursor;
-      
-      const transResponse = await fetch("https://api2.warera.io/trpc/transaction.getPaginatedTransactions?input=" + encodeURIComponent(JSON.stringify(transInput)));
-      const transResult = await transResponse.json();
-      const transactions = transResult.result.data?.items || [];
+      const { transactions, nextCursor } = await fetchWeeklyTransactions(userId, transactionsCursor);
       
       // Filter for donation-type transactions and this week
       transactions.forEach(trans => {
@@ -109,7 +236,7 @@ async function getWeeklyDonations(userId) {
         }
       });
       
-      transactionsCursor = transResult.result.data?.nextCursor;
+      transactionsCursor = nextCursor;
       if (!transactionsCursor) break;
     }
     
@@ -120,11 +247,9 @@ async function getWeeklyDonations(userId) {
   }
 }
 
-async function fetchAllCountries() {
-  const res = await fetch("https://api2.warera.io/trpc/country.getAllCountries");
-  const data = await res.json();
-  return data.result?.data ?? [];
-}
+// =========================================
+// UI RENDERING FUNCTIONS
+// =========================================
 
 async function loadCountries() {
   const select = document.getElementById("countrySelect");
@@ -139,7 +264,7 @@ async function loadCountries() {
   });
 
   countries.forEach(country => {
-    countryMap.set(country._id, country.name); // Cache country names
+    countryMap.set(country._id, country.name);
 
     const pop = country.rankings?.countryActivePopulation?.value ?? 0;
     const option = document.createElement("option");
@@ -150,35 +275,34 @@ async function loadCountries() {
 }
 
 function renderChart(data) {
-  
-    const canvas = document.getElementById("playerChart");
-    const labels = Object.keys(data).sort((a, b) => a - b);
-    const lvlData = labels.map(lvl => data[lvl]);
+  const canvas = document.getElementById("playerChart");
+  const labels = Object.keys(data).sort((a, b) => a - b);
+  const lvlData = labels.map(lvl => data[lvl]);
 
-    playerChartInstance = new Chart(canvas, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Players per Level',
-          data: lvlData,
-          backgroundColor: 'rgba(54, 162, 235, 0.6)',
-          borderColor: 'rgba(54, 162, 235, 1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        scales: {
-          x: {
-            title: { display: true, text: "Level" }
-          },
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: "Number of Players" }
-          }
+  playerChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Players per Level',
+        data: lvlData,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          title: { display: true, text: "Level" }
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: "Number of Players" }
         }
       }
-    });
+    }
+  });
 }
 
 async function loadUsersByCountry(countryId) {
@@ -191,73 +315,75 @@ async function loadUsersByCountry(countryId) {
   let cursor = undefined;
   let fightCnt = 0, hybridCnt = 0, economyCnt = 0;
 
-  while (true) {
-    const input = {
-        "countryId": countryId,
-        "limit": 100,
-      };
-    if (cursor !== undefined) input.cursor = cursor;
-    
-    const response = await fetch("https://api2.warera.io/trpc/user.getUsersByCountry?input=" + encodeURIComponent(JSON.stringify(input)));
-    const data = await response.json();
-    const fetchedUsers = data.result.data.items;
+  try {
+    while (true) {
+      const { users: fetchedUsers, nextCursor } = await fetchUsersByCountry(countryId, cursor);
 
-    for (const user of fetchedUsers) {
-      const input = {
-        userId: user._id
-      };
-      const res = await fetch(`https://api2.warera.io/trpc/user.getUserLite?input=` + encodeURIComponent(JSON.stringify(input)));
-      const userLite = (await res.json()).result.data;
+      for (const user of fetchedUsers) {
+        const userLite = await fetchUserLite(user._id);
+        
+        if (!userLite) continue;
 
-      const userId = user._id;
-      const name = userLite.username;
-      const level = userLite.leveling.level;
-      const fight = sumSkillPoints(userLite.skills, FIGHT_SKILLS);
-      const damage = userLite.rankings?.weeklyUserDamages?.value.toLocaleString() ?? 0;
-      const economy = sumSkillPoints(userLite.skills, ECONOMY_SKILLS);
-      const wealth = Math.round(userLite.rankings?.userWealth?.value).toLocaleString() ?? 0;
-      const total = fight + economy;
-      const fightRatio = total > 0 ? (fight / total * 100).toFixed(0) + "%" : "0%";
-      const economyRatio = total > 0 ? (economy / total * 100).toFixed(0) + "%" : "0%";
-      if (level >= 3) {
-        if (Number(fightRatio.replace('%','')) > 70) fightCnt += 1;
-        else if (Number(economyRatio.replace('%','')) > 70) economyCnt += 1;
-        else hybridCnt += 1;
+        const userId = user._id;
+        const name = userLite.username;
+        const level = userLite.leveling.level;
+        const fight = sumSkillPoints(userLite.skills, FIGHT_SKILLS);
+        const damage = userLite.rankings?.weeklyUserDamages?.value.toLocaleString() ?? 0;
+        const economy = sumSkillPoints(userLite.skills, ECONOMY_SKILLS);
+        const wealth = Math.round(userLite.rankings?.userWealth?.value).toLocaleString() ?? 0;
+        const total = fight + economy;
+        const fightRatio = total > 0 ? (fight / total * 100).toFixed(0) + "%" : "0%";
+        const economyRatio = total > 0 ? (economy / total * 100).toFixed(0) + "%" : "0%";
+        
+        if (level >= 3) {
+          if (Number(fightRatio.replace('%','')) > 70) fightCnt += 1;
+          else if (Number(economyRatio.replace('%','')) > 70) economyCnt += 1;
+          else hybridCnt += 1;
+        }
+        
+        const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
+        const buff = checkBuff(userLite);
+        const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
+        const weeklyDonations = await getWeeklyDonations(userId);
+        levelCounts[level] = (levelCounts[level] || 0) + 1;
+
+        users.push({ userId, name, level, fightRatio, damage, economyRatio, wealth, weeklyDonations, reset, buff, muName });
       }
-      const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
-      const buff = checkBuff(userLite);
-      const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
-      const weeklyDonations = await getWeeklyDonations(userId);
-      levelCounts[level] = (levelCounts[level] || 0) + 1;
 
-      users.push({ userId, name, level, fightRatio, damage, economyRatio, wealth, weeklyDonations, reset, buff, muName });
+      cursor = nextCursor;
+      if (!cursor) break;
     }
 
-    cursor = data.result?.data?.nextCursor;
-    if (!cursor) break;
+    countDisplay.style.display = "block";
+    countDisplay.innerHTML = `Fight builds (70%+): ${fightCnt}<br>Hybrid builds: ${hybridCnt}<br>Economy builds (70%+): ${economyCnt}`;
+
+    renderChart(levelCounts);
+    usersTableBody.innerHTML = users.map(u => `
+      <tr>
+        <td><a href="https://app.warera.io/user/${u.userId}" target="_blank">${u.name}</a></td>
+        <td>${u.level}</td>
+        <td>${u.fightRatio}</td>
+        <td>${u.damage}</td>
+        <td>${u.economyRatio}</td>
+        <td>${u.wealth}</td>
+        <td>${formatMoney(u.weeklyDonations)}</td>
+        <td>${u.reset}</td>
+        <td>${u.buff}</td>
+        <td>${u.muName}</td>
+      </tr>
+    `).join("");
+
+    makeTableSortable("usersTable");
+  } catch (error) {
+    console.error('Error loading users:', error);
+    alert('Error loading player data: ' + error.message);
+    usersTableBody.innerHTML = "<tr><td colspan='10'>Error loading data</td></tr>";
   }
-
-  countDisplay.style.display = "block";
-  countDisplay.innerHTML = `Fight builds (70%+): ${fightCnt}<br>Hybrid builds: ${hybridCnt}<br>Economy builds (70%+): ${economyCnt}`;
-
-  renderChart(levelCounts);
-  usersTableBody.innerHTML = users.map(u => `
-    <tr>
-      <td><a href="https://app.warera.io/user/${u.userId}" target="_blank">${u.name}</a></td>
-      <td>${u.level}</td>
-      <td>${u.fightRatio}</td>
-      <td>${u.damage}</td>
-      <td>${u.economyRatio}</td>
-      <td>${u.wealth}</td>
-      <td>${formatMoney(u.weeklyDonations)}</td>
-      <td>${u.reset}</td>
-      <td>${u.buff}</td>
-      <td>${u.muName}</td>
-    </tr>
-  `).join("");
-
-  makeTableSortable("usersTable");
 }
+
+// =========================================
+// EVENT LISTENERS & INITIALIZATION
+// =========================================
 
 countrySelect.addEventListener("change", () => {
   if (playerChartInstance) {
@@ -267,4 +393,8 @@ countrySelect.addEventListener("change", () => {
   if (countryId) loadUsersByCountry(countryId);
 });
 
-loadCountries();
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadApiKeyFromStorage();
+  loadCountries();
+});
