@@ -213,15 +213,6 @@ function isThisWeek(dateString) {
   return date >= currentWeekStart && date <= currentWeekEnd;
 }
 
-function formatMoney(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount || 0);
-}
-
 // =========================================
 // WEEKLY DONATIONS CALCULATION
 // =========================================
@@ -362,7 +353,7 @@ async function loadUsersByCountry(countryId) {
         const reset = timeUntilReset(userLite.dates.lastSkillsResetAt);
         const buff = checkBuff(userLite);
         const muName = userLite.mu ? await fetchMuName(userLite.mu) : "-";
-        const weeklyDonations = await getWeeklyDonations(userId);
+        const weeklyDonations = await getWeeklyDonations(userId).toLocaleString();
         levelCounts[level] = (levelCounts[level] || 0) + 1;
 
         users.push({ userId, name, level, fightRatio, damage, economyRatio, wealth, weeklyDonations, reset, buff, muName });
@@ -384,7 +375,7 @@ async function loadUsersByCountry(countryId) {
         <td>${u.damage}</td>
         <td>${u.economyRatio}</td>
         <td>${u.wealth}</td>
-        <td>${formatMoney(u.weeklyDonations)}</td>
+        <td>${u.weeklyDonations}</td>
         <td>${u.reset}</td>
         <td>${u.buff}</td>
         <td>${u.muName}</td>
