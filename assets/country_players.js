@@ -195,11 +195,17 @@ function checkBuff(userData) {
   }
 }
 
+function getCurrentWeekStart() {
+  const today = new Date();
+  const currentWeekStart = new Date(today);
+  currentWeekStart.setDate(today.getDate() - today.getDay());
+  currentWeekStart.setHours(0, 0, 0, 0);
+  return currentWeekStart;
+}
+
 function isThisWeek(dateString) {
   const date = new Date(dateString);
-  const today = new Date();
-  const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-  currentWeekStart.setHours(0, 0, 0, 0);
+  const currentWeekStart = getCurrentWeekStart();
   const currentWeekEnd = new Date(currentWeekStart);
   currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
   
@@ -223,18 +229,31 @@ async function getWeeklyDonations(userId) {
   try {
     let transactionsCursor = undefined;
     let weeklyTotal = 0;
+    const currentWeekStart = getCurrentWeekStart();
     
     while (true) {
       const { transactions, nextCursor } = await fetchWeeklyTransactions(userId, transactionsCursor);
       
+      // Stop once older transactions appear
+      let reachedOldTransactions = false;
+      
       // Filter for donation-type transactions and this week
       transactions.forEach(trans => {
+        const transDate = new Date(trans.createdAt);
+        
+        if (transDate < currentWeekStart) {
+          reachedOldTransactions = true;
+          return;
+        }
+        
         if (trans.type && (trans.type.includes('donation') || trans.type.includes('transfer') || trans.type.includes('gift'))) {
-          if (isThisWeek(trans.createdAt)) {
-            weeklyTotal += trans.money || 0;
-          }
+          weeklyTotal += trans.money || 0;
         }
       });
+      
+      if (reachedOldTransactions) {
+        break;
+      }
       
       transactionsCursor = nextCursor;
       if (!transactionsCursor) break;
