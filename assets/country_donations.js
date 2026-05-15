@@ -5,19 +5,39 @@ const TABLE_ID = 'donationsTable';
 const COUNTRY_SELECT_ID = 'countrySelect';
 const STATS_ID = 'donationStats';
 const LOADING_ID = 'loadingMessage';
+const API_KEY_STORAGE_KEY = 'warera_api_key';
 
 let allCountries = [];
 let currentCountryId = null;
 
-// API key — prompted once and cached for the session
+// API key — persisted using localStorage
 let apiKey = null;
 
-// Prompt the user for their API key (once per session)
+// Load API key from localStorage on script load
+function loadApiKeyFromStorage() {
+  const stored = localStorage.getItem(API_KEY_STORAGE_KEY);
+  if (stored) {
+    apiKey = stored;
+  }
+}
+
+// Save API key to localStorage
+function saveApiKeyToStorage(key) {
+  localStorage.setItem(API_KEY_STORAGE_KEY, key);
+}
+
+// Clear API key from localStorage (called on invalid key)
+function clearApiKeyFromStorage() {
+  localStorage.removeItem(API_KEY_STORAGE_KEY);
+  apiKey = null;
+}
+
+// Prompt the user for their API key (once per session, or if not in storage)
 function getApiKey() {
   if (apiKey) return apiKey;
 
   const key = window.prompt(
-    'Enter your WarEra private API key.\n\nThis is required to fetch transaction data and will only be asked once per session.',
+    'Enter your WarEra private API key.\n\nThis is required to fetch transaction data and will be saved for future use.',
     ''
   );
 
@@ -26,12 +46,16 @@ function getApiKey() {
   }
 
   apiKey = key.trim();
+  saveApiKeyToStorage(apiKey);
   return apiKey;
 }
 
 // Initialize page
 async function initializeCountryDonations() {
   try {
+    // Load API key from storage if available
+    loadApiKeyFromStorage();
+
     // Load countries
     const response = await fetch(
       "https://api2.warera.io/trpc/country.getAllCountries"
@@ -123,7 +147,7 @@ async function loadCountryDonations(countryId) {
       const data = await response.json();
 
       if (data.error?.data?.code === 'UNAUTHORIZED') {
-        apiKey = null;
+        clearApiKeyFromStorage();
 
         throw new Error(
           'Invalid API key. Please reload the page and try again.'
@@ -175,7 +199,7 @@ async function loadCountryDonations(countryId) {
       const transResult = await transResponse.json();
 
       if (transResult.error?.data?.code === 'UNAUTHORIZED') {
-        apiKey = null;
+        clearApiKeyFromStorage();
 
         throw new Error(
           'Invalid API key. Please reload the page and try again.'
@@ -248,7 +272,7 @@ async function loadCountryDonations(countryId) {
           const result = await response.json();
     
           if (result.error?.data?.code === 'UNAUTHORIZED') {
-            apiKey = null;
+            clearApiKeyFromStorage();
     
             throw new Error(
               'Invalid API key. Please reload the page and try again.'
