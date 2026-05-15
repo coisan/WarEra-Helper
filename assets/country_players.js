@@ -119,6 +119,7 @@ async function fetchUserLite(userId) {
 async function fetchWeeklyTransactions(userId, cursor = undefined) {
   const input = {
     userId: userId,
+    transactionType: 'donation',
     limit: 100
   };
   if (cursor) input.cursor = cursor;
@@ -237,7 +238,7 @@ async function getWeeklyDonations(userId) {
       // Stop once older transactions appear
       let reachedOldTransactions = false;
       
-      // Filter for donation-type transactions and this week
+      // Add all donation transactions from this week
       transactions.forEach(trans => {
         const transDate = new Date(trans.createdAt);
         
@@ -246,9 +247,7 @@ async function getWeeklyDonations(userId) {
           return;
         }
         
-        if (trans.type && (trans.type.includes('donation') || trans.type.includes('transfer') || trans.type.includes('gift'))) {
-          weeklyTotal += trans.money || 0;
-        }
+        weeklyTotal += trans.money || 0;
       });
       
       if (reachedOldTransactions) {
